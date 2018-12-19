@@ -1,0 +1,214 @@
+diff -ruNp linux-4.14.88/fs/proc/base.c linux-4.14.88-kjudge/fs/proc/base.c
+--- linux-4.14.88/fs/proc/base.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/fs/proc/base.c	2018-12-18 19:02:47.252006593 +0300
+@@ -584,6 +584,7 @@ static const struct limit_names lnames[R
+ 	[RLIMIT_NICE] = {"Max nice priority", NULL},
+ 	[RLIMIT_RTPRIO] = {"Max realtime priority", NULL},
+ 	[RLIMIT_RTTIME] = {"Max realtime timeout", "us"},
++	[RLIMIT_MCPU] = {"Max cpu time", "ms"},
+ };
+ 
+ /* Display limits for a process */
+diff -ruNp linux-4.14.88/include/asm-generic/resource.h linux-4.14.88-kjudge/include/asm-generic/resource.h
+--- linux-4.14.88/include/asm-generic/resource.h	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/include/asm-generic/resource.h	2018-12-18 19:02:47.312007547 +0300
+@@ -26,6 +26,7 @@
+ 	[RLIMIT_NICE]		= { 0, 0 },				\
+ 	[RLIMIT_RTPRIO]		= { 0, 0 },				\
+ 	[RLIMIT_RTTIME]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
++	[RLIMIT_MCPU]		= {  RLIM_INFINITY,  RLIM_INFINITY },	\
+ }
+ 
+ #endif
+diff -ruNp linux-4.14.88/include/linux/posix-timers.h linux-4.14.88-kjudge/include/linux/posix-timers.h
+--- linux-4.14.88/include/linux/posix-timers.h	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/include/linux/posix-timers.h	2018-12-18 19:02:47.312007547 +0300
+@@ -112,6 +112,7 @@ void set_process_cpu_timer(struct task_s
+ 			   u64 *newval, u64 *oldval);
+ 
+ void update_rlimit_cpu(struct task_struct *task, unsigned long rlim_new);
++void update_rlimit_mcpu(struct task_struct *task, unsigned long rlim_new);
+ 
+ void posixtimer_rearm(struct siginfo *info);
+ #endif
+diff -ruNp linux-4.14.88/include/uapi/asm-generic/resource.h linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h
+--- linux-4.14.88/include/uapi/asm-generic/resource.h	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h	2018-12-18 19:02:47.312007547 +0300
+@@ -46,7 +46,8 @@
+ 					   0-39 for nice level 19 .. -20 */
+ #define RLIMIT_RTPRIO		14	/* maximum realtime priority */
+ #define RLIMIT_RTTIME		15	/* timeout for RT tasks in us */
+-#define RLIM_NLIMITS		16
++#define RLIMIT_MCPU			16	/* maximum cpu time in ms */
++#define RLIM_NLIMITS		17
+ 
+ /*
+  * SuS says limits have to be unsigned.
+diff -ruNp linux-4.14.88/kernel/fork.c linux-4.14.88-kjudge/kernel/fork.c
+--- linux-4.14.88/kernel/fork.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/kernel/fork.c	2018-12-18 19:02:47.312007547 +0300
+@@ -1377,11 +1377,17 @@ static void posix_cpu_timers_init_group(
+ 	unsigned long cpu_limit;
+ 
+ 	cpu_limit = READ_ONCE(sig->rlim[RLIMIT_CPU].rlim_cur);
+-	if (cpu_limit != RLIM_INFINITY) {
++	if (unlikely((cpu_limit != RLIM_INFINITY))) {
+ 		sig->cputime_expires.prof_exp = cpu_limit * NSEC_PER_SEC;
+ 		sig->cputimer.running = true;
+ 	}
+ 
++	cpu_limit = READ_ONCE(sig->rlim[RLIMIT_MCPU].rlim_cur);
++	if (unlikely((cpu_limit != RLIM_INFINITY))) {
++		sig->cputime_expires.prof_exp = cpu_limit * NSEC_PER_MSEC;
++		sig->cputimer.running = true;
++	}
++
+ 	/* The timer lists. */
+ 	INIT_LIST_HEAD(&sig->cpu_timers[0]);
+ 	INIT_LIST_HEAD(&sig->cpu_timers[1]);
+diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
+--- linux-4.14.88/kernel/sys.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/kernel/sys.c	2018-12-18 19:02:47.312007547 +0300
+@@ -1476,6 +1476,14 @@ int do_prlimit(struct task_struct *tsk,
+ 		if (resource == RLIMIT_NOFILE &&
+ 				new_rlim->rlim_max > sysctl_nr_open)
+ 			return -EPERM;
++		if (resource == RLIMIT_CPU &&
++				task_rlimit(tsk, RLIMIT_MCPU) != RLIM_INFINITY) {
++			return -EINVAL;
++		}
++		if (resource == RLIMIT_MCPU &&
++				task_rlimit(tsk, RLIMIT_CPU) != RLIM_INFINITY) {
++			return -EINVAL;
++		}
+ 	}
+ 
+ 	/* protect tsk->signal and tsk->sighand from disappearing */
+@@ -1495,7 +1503,7 @@ int do_prlimit(struct task_struct *tsk,
+ 			retval = -EPERM;
+ 		if (!retval)
+ 			retval = security_task_setrlimit(tsk, resource, new_rlim);
+-		if (resource == RLIMIT_CPU && new_rlim->rlim_cur == 0) {
++		if ((resource == RLIMIT_CPU || resource == RLIMIT_MCPU) && new_rlim->rlim_cur == 0) {
+ 			/*
+ 			 * The caller is asking for an immediate RLIMIT_CPU
+ 			 * expiry.  But we use the zero value to mean "it was
+@@ -1523,6 +1531,12 @@ int do_prlimit(struct task_struct *tsk,
+ 	     new_rlim->rlim_cur != RLIM_INFINITY &&
+ 	     IS_ENABLED(CONFIG_POSIX_TIMERS))
+ 		update_rlimit_cpu(tsk, new_rlim->rlim_cur);
++
++	 if (!retval && new_rlim && resource == RLIMIT_MCPU &&
++	     new_rlim->rlim_cur != RLIM_INFINITY &&
++	     IS_ENABLED(CONFIG_POSIX_TIMERS))
++		update_rlimit_mcpu(tsk, new_rlim->rlim_cur);
++
+ out:
+ 	read_unlock(&tasklist_lock);
+ 	return retval;
+diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c
+--- linux-4.14.88/kernel/time/posix-cpu-timers.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c	2018-12-19 15:28:08.278070105 +0300
+@@ -34,6 +34,15 @@ void update_rlimit_cpu(struct task_struc
+ 	spin_unlock_irq(&task->sighand->siglock);
+ }
+ 
++void update_rlimit_mcpu(struct task_struct *task, unsigned long rlim_new)
++{
++	u64 nsecs = rlim_new * NSEC_PER_MSEC;
++
++	spin_lock_irq(&task->sighand->siglock);
++	set_process_cpu_timer(task, CPUCLOCK_PROF, &nsecs, NULL);
++	spin_unlock_irq(&task->sighand->siglock);
++}
++
+ static int check_clock(const clockid_t which_clock)
+ {
+ 	int error = 0;
+@@ -904,7 +913,7 @@ static void check_process_timers(struct
+ 	u64 sum_sched_runtime, sched_expires;
+ 	struct list_head *timers = sig->cpu_timers;
+ 	struct task_cputime cputime;
+-	unsigned long soft;
++	unsigned long soft, hard;
+ 
+ 	/*
+ 	 * If cputimer is not running, then there are no active
+@@ -939,7 +948,7 @@ static void check_process_timers(struct
+ 	check_cpu_itimer(tsk, &sig->it[CPUCLOCK_VIRT], &virt_expires, utime,
+ 			 SIGVTALRM);
+ 	soft = task_rlimit(tsk, RLIMIT_CPU);
+-	if (soft != RLIM_INFINITY) {
++	if (unlikely((soft != RLIM_INFINITY))) {
+ 		unsigned long psecs = div_u64(ptime, NSEC_PER_SEC);
+ 		unsigned long hard = task_rlimit_max(tsk, RLIMIT_CPU);
+ 		u64 x;
+@@ -948,6 +957,7 @@ static void check_process_timers(struct
+ 			 * At the hard limit, we just die.
+ 			 * No need to calculate anything else now.
+ 			 */
++
+ 			if (print_fatal_signals) {
+ 				pr_info("RT Watchdog Timeout (hard): %s[%d]\n",
+ 					tsk->comm, task_pid_nr(tsk));
+@@ -973,6 +983,29 @@ static void check_process_timers(struct
+ 		if (!prof_expires || x < prof_expires)
+ 			prof_expires = x;
+ 	}
++
++	hard = task_rlimit_max(tsk, RLIMIT_MCPU);
++	if (unlikely((hard != RLIM_INFINITY))) {
++		unsigned long pmsecs = div_u64(ptime, NSEC_PER_MSEC);
++		u64 x;
++		if (pmsecs >= hard) {
++			/*
++			 * At the hard limit, we just die.
++			 * No need to calculate anything else now.
++			 */
++
++			if (print_fatal_signals) {
++				pr_info("RT Watchdog Timeout (hard): %s[%d]\n",
++					tsk->comm, task_pid_nr(tsk));
++			}
++			__group_send_sig_info(SIGKILL, SEND_SIG_PRIV, tsk);
++			return;
++		}
++
++		x = hard * NSEC_PER_MSEC;
++		if (!prof_expires || x < prof_expires)
++			prof_expires = x;
++	}
+ 
+ 	sig->cputime_expires.prof_exp = prof_expires;
+ 	sig->cputime_expires.virt_exp = virt_expires;
+diff -ruNp linux-4.14.88/Makefile linux-4.14.88-kjudge/Makefile
+--- linux-4.14.88/Makefile	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/Makefile	2018-12-18 23:29:11.549833492 +0300
+@@ -2,7 +2,7 @@
+ VERSION = 4
+ PATCHLEVEL = 14
+ SUBLEVEL = 88
+-EXTRAVERSION =
++EXTRAVERSION = -kjudge
+ NAME = Petit Gorille
+ 
+ # *DOCUMENTATION*
+diff -ruNp linux-4.14.88/security/selinux/hooks.c linux-4.14.88-kjudge/security/selinux/hooks.c
+--- linux-4.14.88/security/selinux/hooks.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/security/selinux/hooks.c	2018-12-18 19:02:47.316007611 +0300
+@@ -2569,8 +2569,13 @@ static void selinux_bprm_committing_cred
+ 			rlim->rlim_cur = min(rlim->rlim_max, initrlim->rlim_cur);
+ 		}
+ 		task_unlock(current);
+-		if (IS_ENABLED(CONFIG_POSIX_TIMERS))
+-			update_rlimit_cpu(current, rlimit(RLIMIT_CPU));
++
++		if (IS_ENABLED(CONFIG_POSIX_TIMERS)) {
++			if (unlikely((rlimit(RLIMIT_MCPU) != RLIM_INFINITY)))
++				update_rlimit_mcpu(current, rlimit(RLIMIT_MCPU));
++			else
++				update_rlimit_cpu(current, rlimit(RLIMIT_CPU));
++		}		
+ 	}
+ }
+ 
