@@ -1,3 +1,14 @@
+diff -ruNp linux-4.14.88/arch/x86/entry/syscalls/syscall_64.tbl linux-4.14.88-kjudge/arch/x86/entry/syscalls/syscall_64.tbl
+--- linux-4.14.88/arch/x86/entry/syscalls/syscall_64.tbl	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/arch/x86/entry/syscalls/syscall_64.tbl	2019-01-12 21:12:02.838387954 +0300
+@@ -339,6 +339,7 @@
+ 330	common	pkey_alloc		sys_pkey_alloc
+ 331	common	pkey_free		sys_pkey_free
+ 332	common	statx			sys_statx
++333	common	kj_isolate		sys_kj_isolate
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
 diff -ruNp linux-4.14.88/fs/proc/base.c linux-4.14.88-kjudge/fs/proc/base.c
 --- linux-4.14.88/fs/proc/base.c	2018-12-13 11:18:54.000000000 +0300
 +++ linux-4.14.88-kjudge/fs/proc/base.c	2019-01-12 13:55:56.956603095 +0300
@@ -53,6 +64,16 @@ diff -ruNp linux-4.14.88/include/linux/sched.h linux-4.14.88-kjudge/include/linu
  	/*
  	 * New fields for task_struct should be added above here, so that
  	 * they are included in the randomized portion of task_struct.
+diff -ruNp linux-4.14.88/include/linux/syscalls.h linux-4.14.88-kjudge/include/linux/syscalls.h
+--- linux-4.14.88/include/linux/syscalls.h	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/include/linux/syscalls.h	2019-01-12 21:11:45.594332157 +0300
+@@ -940,5 +940,6 @@ asmlinkage long sys_pkey_alloc(unsigned
+ asmlinkage long sys_pkey_free(int pkey);
+ asmlinkage long sys_statx(int dfd, const char __user *path, unsigned flags,
+ 			  unsigned mask, struct statx __user *buffer);
++asmlinkage long sys_kj_isolate(unsigned flags);
+ 
+ #endif
 diff -ruNp linux-4.14.88/include/uapi/asm-generic/resource.h linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h
 --- linux-4.14.88/include/uapi/asm-generic/resource.h	2018-12-13 11:18:54.000000000 +0300
 +++ linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h	2019-01-12 13:55:56.956603095 +0300
@@ -90,7 +111,7 @@ diff -ruNp linux-4.14.88/kernel/fork.c linux-4.14.88-kjudge/kernel/fork.c
  	INIT_LIST_HEAD(&sig->cpu_timers[1]);
 diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
 --- linux-4.14.88/kernel/sys.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/sys.c	2019-01-12 13:55:56.960600304 +0300
++++ linux-4.14.88-kjudge/kernel/sys.c	2019-01-12 21:08:45.945899825 +0300
 @@ -1476,6 +1476,14 @@ int do_prlimit(struct task_struct *tsk,
  		if (resource == RLIMIT_NOFILE &&
  				new_rlim->rlim_max > sysctl_nr_open)
@@ -128,6 +149,17 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  out:
  	read_unlock(&tasklist_lock);
  	return retval;
+@@ -2569,3 +2583,9 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct c
+ 	return 0;
+ }
+ #endif /* CONFIG_COMPAT */
++
++SYSCALL_DEFINE1(kj_isolate, unsigned, flags)
++{
++	if (flags != 0) return -EINVAL;
++	return 0;
++}
+\ No newline at end of file
 diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c
 --- linux-4.14.88/kernel/time/posix-cpu-timers.c	2018-12-13 11:18:54.000000000 +0300
 +++ linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c	2019-01-12 13:55:56.960600304 +0300
