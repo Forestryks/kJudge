@@ -1,6 +1,6 @@
 diff -ruNp linux-4.14.88/arch/x86/entry/syscalls/syscall_64.tbl linux-4.14.88-kjudge/arch/x86/entry/syscalls/syscall_64.tbl
 --- linux-4.14.88/arch/x86/entry/syscalls/syscall_64.tbl	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/arch/x86/entry/syscalls/syscall_64.tbl	2019-01-12 21:12:02.838387954 +0300
++++ linux-4.14.88-kjudge/arch/x86/entry/syscalls/syscall_64.tbl	2019-01-13 16:22:22.414968312 +0300
 @@ -339,6 +339,7 @@
  330	common	pkey_alloc		sys_pkey_alloc
  331	common	pkey_free		sys_pkey_free
@@ -11,7 +11,7 @@ diff -ruNp linux-4.14.88/arch/x86/entry/syscalls/syscall_64.tbl linux-4.14.88-kj
  # x32-specific system call numbers start at 512 to avoid cache impact
 diff -ruNp linux-4.14.88/fs/proc/base.c linux-4.14.88-kjudge/fs/proc/base.c
 --- linux-4.14.88/fs/proc/base.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/fs/proc/base.c	2019-01-12 13:55:56.956603095 +0300
++++ linux-4.14.88-kjudge/fs/proc/base.c	2019-01-13 16:22:22.418962703 +0300
 @@ -584,6 +584,7 @@ static const struct limit_names lnames[R
  	[RLIMIT_NICE] = {"Max nice priority", NULL},
  	[RLIMIT_RTPRIO] = {"Max realtime priority", NULL},
@@ -22,7 +22,7 @@ diff -ruNp linux-4.14.88/fs/proc/base.c linux-4.14.88-kjudge/fs/proc/base.c
  /* Display limits for a process */
 diff -ruNp linux-4.14.88/include/asm-generic/resource.h linux-4.14.88-kjudge/include/asm-generic/resource.h
 --- linux-4.14.88/include/asm-generic/resource.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/asm-generic/resource.h	2019-01-12 13:55:56.956603095 +0300
++++ linux-4.14.88-kjudge/include/asm-generic/resource.h	2019-01-13 16:22:22.418962703 +0300
 @@ -26,6 +26,7 @@
  	[RLIMIT_NICE]		= { 0, 0 },				\
  	[RLIMIT_RTPRIO]		= { 0, 0 },				\
@@ -33,7 +33,7 @@ diff -ruNp linux-4.14.88/include/asm-generic/resource.h linux-4.14.88-kjudge/inc
  #endif
 diff -ruNp linux-4.14.88/include/linux/posix-timers.h linux-4.14.88-kjudge/include/linux/posix-timers.h
 --- linux-4.14.88/include/linux/posix-timers.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/posix-timers.h	2019-01-12 13:55:56.956603095 +0300
++++ linux-4.14.88-kjudge/include/linux/posix-timers.h	2019-01-13 16:22:22.418962703 +0300
 @@ -112,6 +112,7 @@ void set_process_cpu_timer(struct task_s
  			   u64 *newval, u64 *oldval);
  
@@ -44,18 +44,26 @@ diff -ruNp linux-4.14.88/include/linux/posix-timers.h linux-4.14.88-kjudge/inclu
  #endif
 diff -ruNp linux-4.14.88/include/linux/sched.h linux-4.14.88-kjudge/include/linux/sched.h
 --- linux-4.14.88/include/linux/sched.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/sched.h	2019-01-12 20:36:48.599667578 +0300
-@@ -65,6 +65,9 @@ struct task_group;
++++ linux-4.14.88-kjudge/include/linux/sched.h	2019-01-13 17:19:25.135757600 +0300
+@@ -65,6 +65,17 @@ struct task_group;
   * mistake.
   */
  
-+#define KJ_MEMORY_LIMITATION			0x0001
-+#define KJ_WAS_MEMORY_LIMIT				0x0002
++#define KJ_WAS_MEMLIMIT					0x0001
++#define KJ_WAS_MEMLIMIT_STACK			0x0002
++#define KJ_WAS_TIMELIMIT_CPU			0x0004
++#define KJ_WAS_TIMELIMIT_RT				0x0008	/* may me interpreted as KJ_WAS_TIMELIMIT_CPU */
++#define KJ_STAT_MEMLIMIT				0x0010
++#define KJ_STAT_TIMELIMIT				0x0020
++
++#define KJ_WAS_MEMLIMIT_STAT			0x10000
++#define KJ_WAS_MEMLIMIT_STACK_STAT		0x20000
++#define KJ_WAS_TIMELIMIT_STAT			0x40000
 +
  /* Used in tsk->state: */
  #define TASK_RUNNING			0x0000
  #define TASK_INTERRUPTIBLE		0x0001
-@@ -1138,6 +1141,8 @@ struct task_struct {
+@@ -1138,6 +1149,8 @@ struct task_struct {
  	void				*security;
  #endif
  
@@ -66,7 +74,7 @@ diff -ruNp linux-4.14.88/include/linux/sched.h linux-4.14.88-kjudge/include/linu
  	 * they are included in the randomized portion of task_struct.
 diff -ruNp linux-4.14.88/include/linux/syscalls.h linux-4.14.88-kjudge/include/linux/syscalls.h
 --- linux-4.14.88/include/linux/syscalls.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/syscalls.h	2019-01-12 21:11:45.594332157 +0300
++++ linux-4.14.88-kjudge/include/linux/syscalls.h	2019-01-13 16:22:22.418962703 +0300
 @@ -940,5 +940,6 @@ asmlinkage long sys_pkey_alloc(unsigned
  asmlinkage long sys_pkey_free(int pkey);
  asmlinkage long sys_statx(int dfd, const char __user *path, unsigned flags,
@@ -76,7 +84,7 @@ diff -ruNp linux-4.14.88/include/linux/syscalls.h linux-4.14.88-kjudge/include/l
  #endif
 diff -ruNp linux-4.14.88/include/uapi/asm-generic/resource.h linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h
 --- linux-4.14.88/include/uapi/asm-generic/resource.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h	2019-01-12 13:55:56.956603095 +0300
++++ linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h	2019-01-13 16:22:22.418962703 +0300
 @@ -46,7 +46,8 @@
  					   0-39 for nice level 19 .. -20 */
  #define RLIMIT_RTPRIO		14	/* maximum realtime priority */
@@ -87,9 +95,26 @@ diff -ruNp linux-4.14.88/include/uapi/asm-generic/resource.h linux-4.14.88-kjudg
  
  /*
   * SuS says limits have to be unsigned.
+diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
+--- linux-4.14.88/kernel/exit.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/kernel/exit.c	2019-01-13 17:27:31.979031714 +0300
+@@ -1143,6 +1143,13 @@ static int wait_task_zombie(struct wait_
+ 		getrusage(p, RUSAGE_BOTH, wo->wo_rusage);
+ 	status = (p->signal->flags & SIGNAL_GROUP_EXIT)
+ 		? p->signal->group_exit_code : p->exit_code;
++
++	if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT))
++		status |= KJ_WAS_MEMLIMIT_STAT;
++	if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT_STACK))
++		status |= KJ_WAS_MEMLIMIT_STACK_STAT;
++	if ((p->kj_flags & KJ_STAT_TIMELIMIT) && (p->kj_flags & (KJ_WAS_TIMELIMIT | KJ_WAS_TIMELIMIT_RT)))
++		status |= KJ_WAS_TIMELIMIT_STAT;
+ 	wo->wo_stat = status;
+ 
+ 	if (state == EXIT_TRACE) {
 diff -ruNp linux-4.14.88/kernel/fork.c linux-4.14.88-kjudge/kernel/fork.c
 --- linux-4.14.88/kernel/fork.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/fork.c	2019-01-12 13:55:56.956603095 +0300
++++ linux-4.14.88-kjudge/kernel/fork.c	2019-01-13 16:22:22.418962703 +0300
 @@ -1377,11 +1377,17 @@ static void posix_cpu_timers_init_group(
  	unsigned long cpu_limit;
  
@@ -111,7 +136,7 @@ diff -ruNp linux-4.14.88/kernel/fork.c linux-4.14.88-kjudge/kernel/fork.c
  	INIT_LIST_HEAD(&sig->cpu_timers[1]);
 diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
 --- linux-4.14.88/kernel/sys.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/sys.c	2019-01-12 21:08:45.945899825 +0300
++++ linux-4.14.88-kjudge/kernel/sys.c	2019-01-13 17:25:50.750417045 +0300
 @@ -1476,6 +1476,14 @@ int do_prlimit(struct task_struct *tsk,
  		if (resource == RLIMIT_NOFILE &&
  				new_rlim->rlim_max > sysctl_nr_open)
@@ -149,20 +174,23 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  out:
  	read_unlock(&tasklist_lock);
  	return retval;
-@@ -2569,3 +2583,9 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct c
+@@ -2569,3 +2583,13 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct c
  	return 0;
  }
  #endif /* CONFIG_COMPAT */
 +
++#define KJ_ISOLATE_TIMELIMIT		0x0001
++#define KJ_ISOLATE_MEMLIMIT			0x0002
++
 +SYSCALL_DEFINE1(kj_isolate, unsigned, flags)
 +{
-+	if (flags != 0) return -EINVAL;
++	if (flags & KJ_ISOLATE_MEMLIMIT) current->kj_flags |= KJ_STAT_MEMLIMIT;
++	if (flags & KJ_ISOLATE_TIMELIMIT) current->kj_flags |= KJ_STAT_TIMELIMIT;
 +	return 0;
 +}
-\ No newline at end of file
 diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c
 --- linux-4.14.88/kernel/time/posix-cpu-timers.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c	2019-01-12 13:55:56.960600304 +0300
++++ linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c	2019-01-13 16:45:41.472759239 +0300
 @@ -34,6 +34,15 @@ void update_rlimit_cpu(struct task_struc
  	spin_unlock_irq(&task->sighand->siglock);
  }
@@ -179,7 +207,17 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  static int check_clock(const clockid_t which_clock)
  {
  	int error = 0;
-@@ -904,7 +913,7 @@ static void check_process_timers(struct
+@@ -833,6 +842,9 @@ static void check_thread_timers(struct t
+ 			 * At the hard limit, we just die.
+ 			 * No need to calculate anything else now.
+ 			 */
++
++			tsk->kj_flags |= KJ_WAS_TIMELIMIT_RT;
++
+ 			if (print_fatal_signals) {
+ 				pr_info("CPU Watchdog Timeout (hard): %s[%d]\n",
+ 					tsk->comm, task_pid_nr(tsk));
+@@ -904,7 +916,7 @@ static void check_process_timers(struct
  	u64 sum_sched_runtime, sched_expires;
  	struct list_head *timers = sig->cpu_timers;
  	struct task_cputime cputime;
@@ -188,7 +226,7 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  
  	/*
  	 * If cputimer is not running, then there are no active
-@@ -939,7 +948,7 @@ static void check_process_timers(struct
+@@ -939,7 +951,7 @@ static void check_process_timers(struct
  	check_cpu_itimer(tsk, &sig->it[CPUCLOCK_VIRT], &virt_expires, utime,
  			 SIGVTALRM);
  	soft = task_rlimit(tsk, RLIMIT_CPU);
@@ -197,15 +235,17 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  		unsigned long psecs = div_u64(ptime, NSEC_PER_SEC);
  		unsigned long hard = task_rlimit_max(tsk, RLIMIT_CPU);
  		u64 x;
-@@ -948,6 +957,7 @@ static void check_process_timers(struct
+@@ -948,6 +960,9 @@ static void check_process_timers(struct
  			 * At the hard limit, we just die.
  			 * No need to calculate anything else now.
  			 */
 +
++			tsk->kj_flags |= KJ_WAS_TIMELIMIT_CPU;
++
  			if (print_fatal_signals) {
  				pr_info("RT Watchdog Timeout (hard): %s[%d]\n",
  					tsk->comm, task_pid_nr(tsk));
-@@ -973,6 +983,29 @@ static void check_process_timers(struct
+@@ -973,6 +988,31 @@ static void check_process_timers(struct
  		if (!prof_expires || x < prof_expires)
  			prof_expires = x;
  	}
@@ -219,6 +259,8 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
 +			 * At the hard limit, we just die.
 +			 * No need to calculate anything else now.
 +			 */
++
++			tsk->kj_flags |= KJ_WAS_TIMELIMIT_CPU;
 +
 +			if (print_fatal_signals) {
 +				pr_info("RT Watchdog Timeout (hard): %s[%d]\n",
@@ -237,7 +279,7 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  	sig->cputime_expires.virt_exp = virt_expires;
 diff -ruNp linux-4.14.88/Makefile linux-4.14.88-kjudge/Makefile
 --- linux-4.14.88/Makefile	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/Makefile	2019-01-12 13:55:56.960600304 +0300
++++ linux-4.14.88-kjudge/Makefile	2019-01-13 16:22:22.418962703 +0300
 @@ -2,7 +2,7 @@
  VERSION = 4
  PATCHLEVEL = 14
@@ -249,7 +291,7 @@ diff -ruNp linux-4.14.88/Makefile linux-4.14.88-kjudge/Makefile
  # *DOCUMENTATION*
 diff -ruNp linux-4.14.88/security/selinux/hooks.c linux-4.14.88-kjudge/security/selinux/hooks.c
 --- linux-4.14.88/security/selinux/hooks.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/security/selinux/hooks.c	2019-01-12 13:55:56.960600304 +0300
++++ linux-4.14.88-kjudge/security/selinux/hooks.c	2019-01-13 16:22:22.422957094 +0300
 @@ -2569,8 +2569,13 @@ static void selinux_bprm_committing_cred
  			rlim->rlim_cur = min(rlim->rlim_max, initrlim->rlim_cur);
  		}
