@@ -1,5 +1,5 @@
-linux-4.14.88-kjudge/
-linux-4.14.88.tar.xz
-linux-4.14.88/
-linux-4.14.88-kjudge-old/
-out
+kernel/linux-4.14.88-kjudge/
+kernel/linux-4.14.88.tar.xz
+kernel/linux-4.14.88/
+kernel/linux-4.14.88-kjudge-old/
+kernel/out
