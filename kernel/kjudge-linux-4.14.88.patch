@@ -97,7 +97,7 @@ diff -ruNp linux-4.14.88/include/uapi/asm-generic/resource.h linux-4.14.88-kjudg
   * SuS says limits have to be unsigned.
 diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
 --- linux-4.14.88/kernel/exit.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/exit.c	2019-01-15 01:01:14.386647072 +0300
++++ linux-4.14.88-kjudge/kernel/exit.c	2019-01-15 01:02:39.107110047 +0300
 @@ -1143,6 +1143,13 @@ static int wait_task_zombie(struct wait_
  		getrusage(p, RUSAGE_BOTH, wo->wo_rusage);
  	status = (p->signal->flags & SIGNAL_GROUP_EXIT)
@@ -119,9 +119,8 @@ diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
 -	put_task_struct(p);
  
 -	if (likely(!(wo->wo_flags & WNOWAIT)))
--		wo->wo_stat = (exit_code << 8) | 0x7f;
 +	if (likely(!(wo->wo_flags & WNOWAIT))) {
-+		wo->wo_stat |= (exit_code << 8) | 0x7f;
+ 		wo->wo_stat = (exit_code << 8) | 0x7f;
 +		if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT))
 +			wo->wo_stat |= KJ_WAS_MEMLIMIT_STAT;
 +		if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT_STACK))
