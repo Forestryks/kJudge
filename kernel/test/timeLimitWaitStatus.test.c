@@ -15,6 +15,8 @@ void child() {
 		.rlim_max = time_limit_ms		
 	};
 
+	if (syscall(333, 1) != 0)
+		exit(-1);
 	if (setrlimit(16, &rlim) != 0) // RLIMIT_MCPU
 		exit(-1);
 
