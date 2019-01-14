@@ -110,6 +110,7 @@ def isTest(file):
 
 def runTests():
 	files = [file[:-2] for file in os.listdir('.') if isTest(file)]
+	files.sort()
 
 	buildAll(files)
 	runAll(files)
