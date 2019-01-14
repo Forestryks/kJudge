@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os
 import subprocess
-from sys import stderr
+from sys import stderr, argv
 
 class tcol:
 	FAIL = '\033[31;1m'
@@ -31,7 +31,6 @@ def clearAll(files):
 			os.remove(file)
 		except:
 			print(tcol.WARN + 'Failed to remove {0}'.format(file) + tcol.END, file=stderr)
-
 
 LEN = 12
 
@@ -105,8 +104,12 @@ def runAll(files):
 	print(tcol.col('Passed: {0}'.format(passed), tcol.OK))
 	print(tcol.col('Failed: {0}'.format(failed), tcol.FAIL))
 
+def isTest(file):
+	a = file.split('.')
+	return len(a) >= 3 and a[-2] == 'test'
+
 def runTests():
-	files = [file[:-2] for file in os.listdir('.') if file.startswith('test') and file.endswith('.c')]
+	files = [file[:-2] for file in os.listdir('.') if isTest(file)]
 
 	buildAll(files)
 	runAll(files)
