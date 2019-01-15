@@ -9,6 +9,22 @@ diff -ruNp linux-4.14.88/arch/x86/entry/syscalls/syscall_64.tbl linux-4.14.88-kj
  
  #
  # x32-specific system call numbers start at 512 to avoid cache impact
+diff -ruNp linux-4.14.88/fs/exec.c linux-4.14.88-kjudge/fs/exec.c
+--- linux-4.14.88/fs/exec.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/fs/exec.c	2019-01-15 17:40:27.246394771 +0300
+@@ -1834,6 +1834,12 @@ out_files:
+ 	if (displaced)
+ 		reset_files_struct(displaced);
+ out_ret:
++	if (retval == -ENOMEM) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT_EXEC;
++		}
++	}
++
+ 	putname(filename);
+ 	return retval;
+ }
 diff -ruNp linux-4.14.88/fs/proc/base.c linux-4.14.88-kjudge/fs/proc/base.c
 --- linux-4.14.88/fs/proc/base.c	2018-12-13 11:18:54.000000000 +0300
 +++ linux-4.14.88-kjudge/fs/proc/base.c	2019-01-15 00:54:34.252381150 +0300
@@ -44,26 +60,33 @@ diff -ruNp linux-4.14.88/include/linux/posix-timers.h linux-4.14.88-kjudge/inclu
  #endif
 diff -ruNp linux-4.14.88/include/linux/sched.h linux-4.14.88-kjudge/include/linux/sched.h
 --- linux-4.14.88/include/linux/sched.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/sched.h	2019-01-15 00:54:34.256380873 +0300
-@@ -65,6 +65,17 @@ struct task_group;
++++ linux-4.14.88-kjudge/include/linux/sched.h	2019-01-15 17:38:50.386836364 +0300
+@@ -65,6 +65,24 @@ struct task_group;
   * mistake.
   */
  
 +#define KJ_WAS_MEMLIMIT					0x0001
 +#define KJ_WAS_MEMLIMIT_STACK			0x0002
-+#define KJ_WAS_TIMELIMIT_CPU			0x0004
-+#define KJ_WAS_TIMELIMIT_RT				0x0008	/* may me interpreted as KJ_WAS_TIMELIMIT_CPU */
-+#define KJ_STAT_MEMLIMIT				0x0010
-+#define KJ_STAT_TIMELIMIT				0x0020
++#define KJ_WAS_MEMLIMIT_EXEC			0x0004
++#define KJ_WAS_TIMELIMIT_CPU			0x0008
++#define KJ_WAS_TIMELIMIT_RT				0x0010	/* now means nothing special */
++#define KJ_STAT_MEMLIMIT				0x0020
++#define KJ_STAT_TIMELIMIT				0x0040
 +
++/* now status is represented in such way:
++ * [31..22] - SV syscall id
++ * [21..16]	- KJ flags
++ * [15..0]  - system info 0xffff
++ */
 +#define KJ_WAS_MEMLIMIT_STAT			0x10000
 +#define KJ_WAS_MEMLIMIT_STACK_STAT		0x20000
-+#define KJ_WAS_TIMELIMIT_STAT			0x40000
++#define KJ_WAS_MEMLIMIT_EXEC_STAT		0x40000
++#define KJ_WAS_TIMELIMIT_STAT			0x80000
 +
  /* Used in tsk->state: */
  #define TASK_RUNNING			0x0000
  #define TASK_INTERRUPTIBLE		0x0001
-@@ -1138,6 +1149,8 @@ struct task_struct {
+@@ -1138,6 +1156,8 @@ struct task_struct {
  	void				*security;
  #endif
  
@@ -97,8 +120,8 @@ diff -ruNp linux-4.14.88/include/uapi/asm-generic/resource.h linux-4.14.88-kjudg
   * SuS says limits have to be unsigned.
 diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
 --- linux-4.14.88/kernel/exit.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/exit.c	2019-01-15 01:02:39.107110047 +0300
-@@ -1143,6 +1143,13 @@ static int wait_task_zombie(struct wait_
++++ linux-4.14.88-kjudge/kernel/exit.c	2019-01-15 17:28:23.197239248 +0300
+@@ -1143,6 +1143,15 @@ static int wait_task_zombie(struct wait_
  		getrusage(p, RUSAGE_BOTH, wo->wo_rusage);
  	status = (p->signal->flags & SIGNAL_GROUP_EXIT)
  		? p->signal->group_exit_code : p->exit_code;
@@ -107,12 +130,14 @@ diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
 +		status |= KJ_WAS_MEMLIMIT_STAT;
 +	if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT_STACK))
 +		status |= KJ_WAS_MEMLIMIT_STACK_STAT;
++	if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT_EXEC))
++		status |= KJ_WAS_MEMLIMIT_EXEC_STAT;
 +	if ((p->kj_flags & KJ_STAT_TIMELIMIT) && (p->kj_flags & (KJ_WAS_TIMELIMIT_CPU | KJ_WAS_TIMELIMIT_RT)))
 +		status |= KJ_WAS_TIMELIMIT_STAT;
  	wo->wo_stat = status;
  
  	if (state == EXIT_TRACE) {
-@@ -1258,10 +1265,17 @@ unlock_sig:
+@@ -1258,10 +1267,19 @@ unlock_sig:
  	sched_annotate_sleep();
  	if (wo->wo_rusage)
  		getrusage(p, RUSAGE_BOTH, wo->wo_rusage);
@@ -125,6 +150,8 @@ diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
 +			wo->wo_stat |= KJ_WAS_MEMLIMIT_STAT;
 +		if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT_STACK))
 +			wo->wo_stat |= KJ_WAS_MEMLIMIT_STACK_STAT;
++		if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT_EXEC))
++			wo->wo_stat |= KJ_WAS_MEMLIMIT_EXEC_STAT;
 +		if ((p->kj_flags & KJ_STAT_TIMELIMIT) && (p->kj_flags & (KJ_WAS_TIMELIMIT_CPU | KJ_WAS_TIMELIMIT_RT)))
 +			wo->wo_stat |= KJ_WAS_TIMELIMIT_STAT;
 +	}
@@ -309,6 +336,137 @@ diff -ruNp linux-4.14.88/Makefile linux-4.14.88-kjudge/Makefile
  NAME = Petit Gorille
  
  # *DOCUMENTATION*
+diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
+--- linux-4.14.88/mm/mmap.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/mm/mmap.c	2019-01-15 18:04:56.547560045 +0300
+@@ -246,11 +246,21 @@ set_brk:
+ 	userfaultfd_unmap_complete(mm, &uf);
+ 	if (populate)
+ 		mm_populate(oldbrk, newbrk - oldbrk);
++	if (brk == -ENOMEM) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT;
++		}
++	}
+ 	return brk;
+ 
+ out:
+ 	retval = mm->brk;
+ 	up_write(&mm->mmap_sem);
++	if (retval == -ENOMEM) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT;
++		}
++	}
+ 	return retval;
+ }
+ 
+@@ -1551,6 +1561,11 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+ out_fput:
+ 	if (file)
+ 		fput(file);
++	if (retval == -ENOMEM) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT;
++		}
++	}
+ 	return retval;
+ }
+ 
+@@ -1573,8 +1588,14 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+ 	if (offset_in_page(a.offset))
+ 		return -EINVAL;
+ 
+-	return sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
++	long ret = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
+ 			      a.offset >> PAGE_SHIFT);
++	if (ret == -ENOMEM) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT;
++		}
++	}
++	return ret;
+ }
+ #endif /* __ARCH_WANT_SYS_OLD_MMAP */
+ 
+@@ -2213,12 +2234,20 @@ static int acct_stack_growth(struct vm_a
+ 	unsigned long new_start;
+ 
+ 	/* address space limit tests */
+-	if (!may_expand_vm(mm, vma->vm_flags, grow))
++	if (!may_expand_vm(mm, vma->vm_flags, grow)) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT_STACK;
++		}
+ 		return -ENOMEM;
++	}
+ 
+ 	/* Stack limit test */
+-	if (size > rlimit(RLIMIT_STACK))
++	if (size > rlimit(RLIMIT_STACK)) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT_STACK;
++		}
+ 		return -ENOMEM;
++	}
+ 
+ 	/* mlock limit tests */
+ 	if (vma->vm_flags & VM_LOCKED) {
+@@ -2227,8 +2256,12 @@ static int acct_stack_growth(struct vm_a
+ 		locked = mm->locked_vm + grow;
+ 		limit = rlimit(RLIMIT_MEMLOCK);
+ 		limit >>= PAGE_SHIFT;
+-		if (locked > limit && !capable(CAP_IPC_LOCK))
++		if (locked > limit && !capable(CAP_IPC_LOCK)) {
++			if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++				current->kj_flags |= KJ_WAS_MEMLIMIT_STACK;
++			}
+ 			return -ENOMEM;
++		}
+ 	}
+ 
+ 	/* Check to ensure the stack will not grow into a hugetlb-only region */
+@@ -2241,8 +2274,12 @@ static int acct_stack_growth(struct vm_a
+ 	 * Overcommit..  This must be the final test, as it will
+ 	 * update security statistics.
+ 	 */
+-	if (security_vm_enough_memory_mm(mm, grow))
++	if (security_vm_enough_memory_mm(mm, grow)) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT_STACK;
++		}
+ 		return -ENOMEM;
++	}
+ 
+ 	return 0;
+ }
+@@ -2869,6 +2906,11 @@ out:
+ 		mm_populate(ret, populate);
+ 	if (!IS_ERR_VALUE(ret))
+ 		ret = 0;
++	if (ret == -ENOMEM) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT;
++		}
++	}
+ 	return ret;
+ }
+ 
+diff -ruNp linux-4.14.88/mm/mremap.c linux-4.14.88-kjudge/mm/mremap.c
+--- linux-4.14.88/mm/mremap.c	2018-12-13 11:18:54.000000000 +0300
++++ linux-4.14.88-kjudge/mm/mremap.c	2019-01-15 17:44:50.905352971 +0300
+@@ -637,5 +637,11 @@ out:
+ 	userfaultfd_unmap_complete(mm, &uf_unmap_early);
+ 	mremap_userfaultfd_complete(&uf, addr, new_addr, old_len);
+ 	userfaultfd_unmap_complete(mm, &uf_unmap);
++
++	if (ret == -ENOMEM) {
++		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++			current->kj_flags |= KJ_WAS_MEMLIMIT;
++		}
++	}
+ 	return ret;
+ }
 diff -ruNp linux-4.14.88/security/selinux/hooks.c linux-4.14.88-kjudge/security/selinux/hooks.c
 --- linux-4.14.88/security/selinux/hooks.c	2018-12-13 11:18:54.000000000 +0300
 +++ linux-4.14.88-kjudge/security/selinux/hooks.c	2019-01-15 00:54:34.256380873 +0300
