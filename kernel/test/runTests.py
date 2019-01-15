@@ -1,133 +1,145 @@
 #!/usr/bin/python3
 import os
-import shutil
 import subprocess
 from sys import stderr, argv
 
+
 class tcol:
-	FAIL = '\033[31;1m'
-	OK = '\033[92m'
-	WARN = '\033[33;1m'
-	END = '\033[0m'
-	def col(s, c):
-		return c + s + tcol.END
+    FAIL = '\033[31;1m'
+    OK = '\033[92m'
+    WARN = '\033[33;1m'
+    END = '\033[0m'
 
-def buildAll(files):
-	print('Building tests...')
-	for file in files:
-		cmd = 'cc {0}.c -o {0}'.format(file)
-		print(cmd)
-		try:
-			if os.system(cmd) != 0:
-				raise Exception
-		except:
-			print(tcol.FAIL + 'Compilation failed ({0}.c)'.format(file) + tcol.END)
-			exit(-1)
+    @staticmethod
+    def col(s, c):
+        return c + s + tcol.END
 
-	print('Build finished successfully')
 
-def clearAll(files):
-	for file in files:
-		try:
-			os.remove(file)
-		except:
-			print(tcol.WARN + 'Failed to remove {0}'.format(file) + tcol.END, file=stderr)
+def get_files(path, prefix):
+    files = []
+    for file in os.listdir(path):
+        if os.path.isfile(path + '/' + file):
+            sp = file.split('.')
+            if len(sp) >= 3 and sp[-2] == 'test' and sp[-1] == 'c':
+                files.append(prefix + file[:-2])
+        elif os.path.isdir(path + '/' + file):
+            sp = file.split('.')
+            if len(sp) >= 2 and sp[-1] == 'testset':
+                files += get_files(path + '/' + file, prefix + file + '/')
+    return files
 
-LEN = 12
+
+def build_all(files):
+    print('Building tests...')
+    for file in files:
+        cmd = 'cc {0}.c -o {0}'.format(file)
+        print(cmd)
+        try:
+            if os.system(cmd) != 0:
+                raise Exception
+        except:
+            print(tcol.FAIL + 'Compilation failed ({0}.c)'.format(file) + tcol.END)
+            exit(-1)
+
+    print('Build finished successfully')
+
 
 class progress:
-	LEN = 12
-	cnt = -1
-	
-	def next(self):
-		self.cnt += 1
-		LEN = self.LEN
-		cnt = self.cnt
-		r = ' ' * LEN
-		cnt %= (LEN - 3) * 2
-		if cnt < LEN - 3:
-			r = r[:cnt] + '.' * 3 + r[cnt + 3:]
-		else:
-			cnt -= LEN - 3
-			r = r[:cnt] + '.' * 3 + r[cnt + 3:]
-			r = r[::-1]
-		r = '[' + r + ']'
-		return r + ' ' + self.file
+    LEN = 12
+    cnt = -1
 
-	def verdict(self, s):
-		LEN = self.LEN
-		pos = (LEN - len(s) + 1) // 2
-		r = '[' + ' ' * pos + s + ' ' * (LEN - pos - len(s)) + ']'
-		return r
+    def next(self):
+        self.cnt += 1
+        LEN = self.LEN
+        cnt = self.cnt
+        r = ' ' * LEN
+        cnt %= (LEN - 3) * 2
+        if cnt < LEN - 3:
+            r = r[:cnt] + '.' * 3 + r[cnt + 3:]
+        else:
+            cnt -= LEN - 3
+            r = r[:cnt] + '.' * 3 + r[cnt + 3:]
+            r = r[::-1]
+        r = '[' + r + ']'
+        return r + ' ' + self.file
 
-	def passed(self):
-		return tcol.col(self.verdict('PASSED'), tcol.OK) + ' ' + self.file
+    def verdict(self, s):
+        LEN = self.LEN
+        pos = (LEN - len(s) + 1) // 2
+        r = '[' + ' ' * pos + s + ' ' * (LEN - pos - len(s)) + ']'
+        return r
 
-	def failed(self):
-		return tcol.col(self.verdict('FAILED'), tcol.FAIL) + ' ' + self.file
+    def passed(self):
+        return tcol.col(self.verdict('PASSED'), tcol.OK) + ' ' + self.file
 
-	def __init__(self, file):
-		self.file = file
+    def failed(self):
+        return tcol.col(self.verdict('FAILED'), tcol.FAIL) + ' ' + self.file
 
-def runAll(files):
-	print('Running tests...')
-	print('==================================================')
+    def __init__(self, file):
+        self.file = file
 
-	all = len(files)
-	passed = 0
-	failed = 0
-	# skipped = 0
 
-	if os.path.exists('.log'):
-		shutil.rmtree('.log')
-	os.makedirs('.log')
+def run_all(files):
+    print('Running tests...')
+    print('=' * 70)
 
-	for file in files:
-		bar = progress(file)
-		print(bar.next(), end='')
+    all = len(files)
+    passed = 0
+    failed = 0
+    # skipped = 0
 
-		try:
-			f = open('.log/' + file + '.log', 'w')
-		except:
-			print(tcol.col('Failed to create log file {0}'.fromat('.log/' + file + '.log'), tcol.FAIL))
-			exit(-1)
+    log = open('.log', 'w')
 
-		try:
-			proc = subprocess.Popen('./' + file, stdout=f)
-			while True:
-				try:
-					res = proc.wait(timeout=0.1)
-					if res == 0:
-						print('\r' + bar.passed())
-						passed += 1
-					else:
-						print('\r' + bar.failed())
-						failed += 1
-					break
-				except:
-					print('\r' + bar.next(), end='')
-		except:
-			print('\r' + bar.failed())
-			failed += 1
-		del bar
-		f.close()
+    for file in files:
+        fname = file.replace('.testset/', '::')
+        bar = progress(fname)
+        print(bar.next(), end='')
 
-	print('==================================================')
-	print('Summary:')
-	print(tcol.col('Passed: {0}'.format(passed), tcol.OK))
-	print(tcol.col('Failed: {0}'.format(failed), tcol.FAIL))
+        log.write('Running ' + fname + '\n')
+        log.write('=' * 50 + '\n')
+        try:
+            proc = subprocess.Popen('./' + file, stdout=log)
+            while True:
+                try:
+                    res = proc.wait(timeout=0.1)
+                    if res == 0:
+                        print('\r' + bar.passed())
+                        passed += 1
+                    else:
+                        print('\r' + bar.failed())
+                        failed += 1
+                    break
+                except:
+                    print('\r' + bar.next(), end='')
+        except:
+            print('\r' + bar.failed())
+            failed += 1
+        log.write('=' * 70 + '\n')
+        del bar
+    log.close()
 
-def isTest(file):
-	a = file.split('.')
-	return len(a) >= 3 and a[-2] == 'test'
+    print('=' * 70)
+    print('Summary:')
+    print(tcol.col('Passed: {0}'.format(passed), tcol.OK))
+    print(tcol.col('Failed: {0}'.format(failed), tcol.FAIL))
 
-def runTests():
-	files = [file[:-2] for file in os.listdir('.') if isTest(file)]
-	files.sort()
 
-	buildAll(files)
-	runAll(files)
-	clearAll(files)
+def clean_all(files):
+    for file in files:
+        try:
+            os.remove(file)
+        except:
+            print(tcol.WARN + 'Failed to remove {0}'.format(file) + tcol.END, file=stderr)
+
+
+def run_tests():
+    files = get_files(os.getcwd(), '')
+    files.sort()
+
+    build_all(files)
+    run_all(files)
+    clean_all(files)
+
 
 if __name__ == "__main__":
-	runTests()
+    run_tests()
