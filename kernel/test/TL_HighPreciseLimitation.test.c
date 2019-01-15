@@ -36,7 +36,7 @@ void parent(pid_t pid) {
 	if (wait(&status) != pid)
 		exit(-1);
 
-	if ((status & KJ_WAS_TIMELIMIT_STAT)) exit(-1);
+	if (!(status & KJ_WAS_TIMELIMIT_STAT)) exit(-1);
 
 	status &= 0xffff;
 
