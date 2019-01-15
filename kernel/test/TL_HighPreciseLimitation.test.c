@@ -39,7 +39,6 @@ void parent(pid_t pid) {
 	if ((status & KJ_WAS_TIMELIMIT_STAT)) exit(-1);
 
 	status &= 0xffff;
-	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) exit(-1);
 
 	struct rusage usage;
 	if (getrusage(RUSAGE_CHILDREN, &usage) != 0)

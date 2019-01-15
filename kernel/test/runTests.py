@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+import shutil
 import subprocess
 from sys import stderr, argv
 
@@ -77,11 +78,22 @@ def runAll(files):
 	failed = 0
 	# skipped = 0
 
+	if os.path.exists('.log'):
+		shutil.rmtree('.log')
+	os.makedirs('.log')
+
 	for file in files:
 		bar = progress(file)
 		print(bar.next(), end='')
+
 		try:
-			proc = subprocess.Popen('./' + file)
+			f = open('.log/' + file + '.log', 'w')
+		except:
+			print(tcol.col('Failed to create log file {0}'.fromat('.log/' + file + '.log'), tcol.FAIL))
+			exit(-1)
+
+		try:
+			proc = subprocess.Popen('./' + file, stdout=f)
 			while True:
 				try:
 					res = proc.wait(timeout=0.1)
@@ -98,6 +110,7 @@ def runAll(files):
 			print('\r' + bar.failed())
 			failed += 1
 		del bar
+		f.close()
 
 	print('==================================================')
 	print('Summary:')
