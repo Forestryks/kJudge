@@ -21,6 +21,14 @@ import subprocess
 from sys import stderr, argv
 
 
+# ext : (compilation, run, cleanup)
+extList = {
+    'c': ('cc {0}.c -o {0}', './{0}', '{0}'),
+    'cpp': ('g++ {0}.cpp -o {0}', './{0}', '{0}'),
+    'py': (None, 'python3 {0}.py', None)
+}
+
+
 class tcol:
     FAIL = '\033[31;1m'
     OK = '\033[92m'
@@ -37,8 +45,8 @@ def get_files(path, prefix):
     for file in os.listdir(path):
         if os.path.isfile(path + '/' + file):
             sp = file.split('.')
-            if len(sp) >= 3 and sp[-2] == 'test' and sp[-1] == 'c':
-                files.append(prefix + file[:-2])
+            if len(sp) >= 3 and sp[-2] == 'test' and sp[-1] in extList:
+                files.append(prefix + file)
         elif os.path.isdir(path + '/' + file):
             sp = file.split('.')
             if len(sp) >= 2 and sp[-1] == 'testset':
@@ -49,13 +57,17 @@ def get_files(path, prefix):
 def build_all(files):
     print('Building tests...')
     for file in files:
-        cmd = 'cc {0}.c -o {0}'.format(file)
+        pos = file.rfind('.')
+        ext = file[pos + 1:]
+        if extList[ext][0] is None:
+            continue
+        cmd = extList[ext][0].format(file[:pos])
         print(cmd)
         try:
             if os.system(cmd) != 0:
                 raise Exception
         except:
-            print(tcol.FAIL + 'Compilation failed ({0}.c)'.format(file) + tcol.END)
+            print(tcol.FAIL + 'Compilation failed ({0})'.format(file) + tcol.END)
             exit(-1)
 
     print('Build finished successfully')
@@ -112,10 +124,16 @@ def run_all(files):
         bar = progress(fname)
         print(bar.next(), end='')
 
+        log.write('=' * 70 + '\n')
         log.write('Running ' + fname + '\n')
-        log.write('=' * 50 + '\n')
+        log.write('=' * 70 + '\n')
         try:
-            proc = subprocess.Popen('./' + file, stdout=log)
+            pos = file.rfind('.')
+            ext = file[pos + 1:]
+            if extList[ext][1] is None:
+                continue
+            cmd = extList[ext][1].format(file[:pos])
+            proc = subprocess.Popen(cmd.split(), stdout=log)
             while True:
                 try:
                     res = proc.wait(timeout=0.1)
@@ -131,7 +149,7 @@ def run_all(files):
         except:
             print('\r' + bar.failed())
             failed += 1
-        log.write('=' * 70 + '\n')
+        log.write('=' * 70 + '\n\n\n')
         del bar
     log.close()
 
@@ -143,10 +161,15 @@ def run_all(files):
 
 def clean_all(files):
     for file in files:
+        pos = file.rfind('.')
+        ext = file[pos + 1:]
+        if extList[ext][2] is None:
+            continue
+        cmd = extList[ext][2].format(file[:pos])
         try:
-            os.remove(file)
+            os.remove(cmd)
         except:
-            print(tcol.WARN + 'Failed to remove {0}'.format(file) + tcol.END, file=stderr)
+            print(tcol.WARN + 'Failed to remove {0}'.format(cmd) + tcol.END, file=stderr)
 
 
 def run_tests():
