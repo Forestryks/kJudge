@@ -15,7 +15,7 @@
 #define FAIL(s, ...)	printf("[%s:%d] Epic fail! " s "\n", __FILE__, __LINE__ VA_ARGS(__VA_ARGS__)); exit(-1);
 #define ASSERT(x)		do { if (!(x)) {FAIL("Assertation \"" #x "\" failed");} } while (0);
 
-#define MEMLIMIT_KB		(long)1024 * 50
+#define MEMLIMIT_KB		(long)1024 * 60
 #define FILENAME		".mmap_tmp0fsdcsd"
 
 const long SIZE = 55; // 55 MB
@@ -43,13 +43,13 @@ void child() {
 	ASSERT(fstat(fd, &sb) != -1);
 
 	addr = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (addr != MAP_FAILED) {
-		munmap(addr, sb.st_size);
+	if (addr == MAP_FAILED) {
 		close(fd);
 		remove(FILENAME);
-		ASSERT(addr == MAP_FAILED);
+		ASSERT(addr != MAP_FAILED);
 	}
 
+	munmap(addr, sb.st_size);
 	close(fd);
 	ASSERT(remove(FILENAME) == 0);
 }
@@ -66,9 +66,9 @@ void parent(pid_t pid) {
 	}
 	printf("\n");
 
-	ASSERT(W_WASMEMLIMIT(status));
+	ASSERT(!W_WASMEMLIMIT(status));
 	W_CLEARBITS(status);
-	ASSERT(WIFEXITED(status));
+	ASSERT(WIFEXITED(status) && WEXITSTATUS(status) == 0);
 
 	ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
 	LOG("Memory limit: %ld KB", MEMLIMIT_KB);
