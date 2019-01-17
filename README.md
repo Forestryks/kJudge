@@ -3,7 +3,7 @@
 kJudge is a kernel-based sandbox for contest management systems. It is intended to safely execute untrusted third-party code. This is achieved by forbidding potentially harmful system calls and specifying time and memory limits on the program to be executed.
 
 ## Installation
-*To easily prepare working environment run `kernel/setup.sh`*
+*To easily prepare development environment run `kernel/setup.sh`*
 
 1. Change to the `kernel/` directory
 
