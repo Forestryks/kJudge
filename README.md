@@ -3,7 +3,7 @@
 kJudge is a kernel-based sandbox for contest management systems. It is intended to safely execute untrusted third-party code. This is achieved by forbidding potentially harmful system calls and specifying time and memory limits on the program to be executed.
 
 ## Installation
-*For the fast working environment setup you can use `kernel/setup.sh`*
+*To easily prepare working environment run `kernel/setup.sh`*
 
 1. Change to the `kernel/` directory
 
@@ -90,7 +90,7 @@ sudo dnf install ncurses-devel bison flex elfutils-libelf-devel openssl-devel
 make menuconfig
 ```
 
-4. Compiling the kernel
+4. Compile the kernel
 
 ```
 N=6
@@ -108,7 +108,7 @@ grubby --default-index
 grubby --default-kernel
 ```
 
-6. Now reboot into the new kernel and verify whether whether the kernel is patched
+6. Now reboot into the new kernel and verify whether the kernel is patched
 ```
 uname -r
 # output: 4.14.88-kjudge
