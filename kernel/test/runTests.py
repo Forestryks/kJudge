@@ -23,8 +23,8 @@ from sys import stderr, argv
 
 # ext : (compilation, run, cleanup)
 extList = {
-    'c': ('cc {0}.c -o {0}', './{0}', '{0}'),
-    'cpp': ('g++ {0}.cpp -o {0}', './{0}', '{0}'),
+    'c': ('cc {0}.c -o {0}', '{0}', '{0}'),
+    'cpp': ('g++ {0}.cpp -o {0}', '{0}', '{0}'),
     'py': (None, 'python3 {0}.py', None)
 }
 
@@ -132,8 +132,11 @@ def run_all(files):
             ext = file[pos + 1:]
             if extList[ext][1] is None:
                 continue
-            cmd = extList[ext][1].format(file[:pos])
-            proc = subprocess.Popen(cmd.split(), stdout=log)
+
+            log.flush()
+            cmd = extList[ext][1].format(os.path.realpath(file[:pos]))
+            proc = subprocess.Popen(cmd.split(), stdout=log, stderr=log, cwd=os.path.dirname(os.path.realpath(file)))
+
             while True:
                 try:
                     res = proc.wait(timeout=0.1)

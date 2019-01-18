@@ -15,10 +15,10 @@
 #define FAIL(s, ...)	printf("[%s:%d] Epic fail! " s "\n", __FILE__, __LINE__ VA_ARGS(__VA_ARGS__)); exit(-1);
 #define ASSERT(x)		do { if (!(x)) {FAIL("Assertation \"" #x "\" failed");} } while (0);
 
-#define MEMLIMIT_KB		(long)1024 * 60
 #define FILENAME		".mmap_tmp0fsdcsd"
 
-const long SIZE = 55; // 55 MB
+const long MEMLIMIT_KB = 1024 * 60;     // 60 MB
+const long MMAP_FILE_SIZE = 55;         // 55 MB
 char cmd[100];
 
 void child() {
@@ -34,13 +34,14 @@ void child() {
 	ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
 	ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 	
-	sprintf(cmd, "dd if=/dev/urandom of=" FILENAME " bs=1M count=%ld >/dev/null 2>&1", SIZE);
+	sprintf(cmd, "dd if=/dev/urandom of=" FILENAME " bs=1M count=%ld >/dev/null 2>&1", MMAP_FILE_SIZE);
 	ASSERT(system(cmd) == 0);
 
 	fd = open(FILENAME, O_RDONLY);
 	ASSERT(fd != -1);
 
 	ASSERT(fstat(fd, &sb) != -1);
+	ASSERT(sb.st_size == MMAP_FILE_SIZE * 1024 * 1024);
 
 	addr = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (addr == MAP_FAILED) {
