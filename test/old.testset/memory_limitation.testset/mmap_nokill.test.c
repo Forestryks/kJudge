@@ -9,11 +9,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <wait.h>
-
-#define VA_ARGS(...)	, ##__VA_ARGS__
-#define LOG(s, ...)		printf("[%s:%d] " s "\n", __FILE__, __LINE__ VA_ARGS(__VA_ARGS__))
-#define FAIL(s, ...)	printf("[%s:%d] Epic fail! " s "\n", __FILE__, __LINE__ VA_ARGS(__VA_ARGS__)); exit(-1);
-#define ASSERT(x)		do { if (!(x)) {FAIL("Assertation \"" #x "\" failed");} } while (0);
+#include <simple_test.h>
 
 #define FILENAME		".mmap_tmp0fsdcsd"
 
