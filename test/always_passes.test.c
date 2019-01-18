@@ -24,5 +24,5 @@
 #include <simple_test.h>
 
 int main() {
-	ASSERT(1);
+	EXIT_SUCC();
 }

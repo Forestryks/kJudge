@@ -24,4 +24,5 @@
 
 int main() {
 	ASSERT(kj_isolate(0) == 0);
+	EXIT_SUCC();
 }

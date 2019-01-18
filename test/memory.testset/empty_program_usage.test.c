@@ -42,7 +42,7 @@ void parent(pid_t pid) {
 	ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
 	LOG("Memory usage: %ld", usage.ru_maxvm);
 	ASSERT(usage.ru_maxvm != 0);
-	exit(0);
+	EXIT_SUCC();
 }
 
 int main() {

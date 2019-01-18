@@ -22,7 +22,8 @@
 
 #define VA_ARGS(...)	, ##__VA_ARGS__
 #define LOG(s, ...)		printf("[%s:%d] " s "\n", __FILE__, __LINE__ VA_ARGS(__VA_ARGS__))
-#define FAIL(s, ...)	printf("[%s:%d] Epic fail! " s "\n", __FILE__, __LINE__ VA_ARGS(__VA_ARGS__)); exit(-1);
+#define FAIL(s, ...)	do { printf("[%s:%d] Epic fail! " s "\n", __FILE__, __LINE__ VA_ARGS(__VA_ARGS__)); exit(-1); } while (0)
 #define ASSERT(x)		do { if (!(x)) {FAIL("Assertation \"" #x "\" failed");} } while (0);
+#define EXIT_SUCC()			do { LOG("Exited successfully"); exit(0); } while (0)
 
 #endif

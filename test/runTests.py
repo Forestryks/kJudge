@@ -23,8 +23,8 @@ from sys import stderr, argv
 
 # ext : (compilation, run, cleanup)
 extList = {
-    'c': ('cc -I. {0}.c -o {0}', '{0}', '{0}'),
-    'cpp': ('g++ -I. {0}.cpp -o {0}', '{0}', '{0}'),
+    'c': ('cc -I{1} {0}.c -o {0}', '{0}', '{0}'),
+    'cpp': ('g++ -I{1} {0}.cpp -o {0}', '{0}', '{0}'),
     'py': (None, 'python3 {0}.py', None)
 }
 
@@ -61,7 +61,9 @@ def build_all(files):
         ext = file[pos + 1:]
         if extList[ext][0] is None:
             continue
-        cmd = extList[ext][0].format(file[:pos])
+        cwd = os.getcwd()
+        cmd = extList[ext][0].format(os.path.basename(file)[:-len(ext) - 1], cwd)
+        os.chdir(os.path.dirname(os.path.abspath(file)))
         print(cmd)
         try:
             if os.system(cmd) != 0:
@@ -69,6 +71,7 @@ def build_all(files):
         except:
             print(tcol.FAIL + 'Compilation failed ({0})'.format(file) + tcol.END)
             exit(-1)
+        os.chdir(cwd)
 
     print('Build finished successfully')
 
