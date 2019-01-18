@@ -37,6 +37,8 @@
 #define IMEMLIMITATION			0x0001
 #define ITIMELIMITATION			0x0002
 
+#define ru_maxvm				ru_isrss
+
 long kj_isolate(unsigned int flags) {
 	return syscall(__NR_kj_isolate, flags);
 }
