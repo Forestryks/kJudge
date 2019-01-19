@@ -14,10 +14,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* stack_overflow_kill.test.c
+/* stack_usage_nokill.test.c
  *
- * Check whether program is killed at stack overflow and
- * WASMEMLIMIT_STACK is set
+ * Check whether stack is taken into account when calculating vm size
+ *
+ * !!!IMPORTANT!!!
+ * If this test fails, check that `ulimit -s` is big enough
  */
 
 #include <sys/resource.h>
@@ -30,11 +32,12 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-const long MEMLIMIT_KB  = 50 * 1024;     // 50 MB
-const long MIN_MEMUSAGE_KB = 15 * 1024;     // 30 MB
+const long MEMLIMIT_KB     = 200 * 1024;    // 200 MB
+const long MIN_MEMUSAGE_KB = 15 * 1024;     // 1 MB
+const long REC_DEPTH       = MIN_MEMUSAGE_KB * 2 * 1024 / 2 * sizeof(long);
 
-void rec(int x) {
-    if (x == 200000) return;
+void rec(long x) {
+    if (x == REC_DEPTH) return;
     rec(x + 1);
 }
 
