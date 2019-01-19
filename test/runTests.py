@@ -23,8 +23,8 @@ from sys import stderr, argv
 
 # ext : (compilation, run, cleanup)
 extList = {
-    'c': ('cc -I{1} {0}.c -o {0}', '{0}', '{0}'),
-    'cpp': ('g++ -I{1} {0}.cpp -o {0}', '{0}', '{0}'),
+    'c': ('gcc -I{1} -O0 {0}.c -o {0}', '{0}', '{0}'),
+    'cpp': ('g++ -I{1} -O0 {0}.cpp -o {0}', '{0}', '{0}'),
     'py': (None, 'python3 {0}.py', None)
 }
 

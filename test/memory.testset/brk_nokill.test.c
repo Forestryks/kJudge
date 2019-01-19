@@ -14,7 +14,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* brk_kill.test.c
+/* brk_nokill.test.c
  *
  * Check whether brk() with not so large increment parameter not fails
  * with memory limit.
@@ -35,7 +35,7 @@
 #include <kjudge.h>
 
 const long MEMLIMIT_KB = 50 * 1024;     // 50 MB
-const long BRK_SIZE   = 40 * 1024;     // 60 MB
+const long BRK_SIZE    = 40 * 1024;     // 40 MB
 
 void child() {
     struct rlimit rlim = {
