@@ -46,7 +46,7 @@ void child() {
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
-    ASSERT(sbrk(BRK_SIZE) != ((void *) -1));
+    ASSERT(sbrk(BRK_SIZE * 1024) != ((void *) -1));
 
     exit(0);
 }
