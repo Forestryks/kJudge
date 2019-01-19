@@ -21,6 +21,7 @@
 
 #define RLIMIT_MCPU				16
 #define __NR_kj_isolate			333
+#define SYS_kj_isolate			333
 
 #define _W_MEMLIMIT				0x10000
 #define _W_MEMLIMIT_STACK		0x20000

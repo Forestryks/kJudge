@@ -29,28 +29,29 @@
 #include <kjudge.h>
 
 void child() {
-	exit(0);
+    exit(0);
 }
 
 void parent(pid_t pid) {
-	int status;
-	struct rusage usage;
+    int status;
+    struct rusage usage;
 
-	ASSERT(wait(&status) == pid);
-	ASSERT(WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    ASSERT(wait(&status) == pid);
+    ASSERT(WIFEXITED(status) && WEXITSTATUS(status) == 0);
 
-	ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
-	LOG("Memory usage: %ld", usage.ru_maxvm);
-	ASSERT(usage.ru_maxvm != 0);
-	EXIT_SUCC();
+    ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
+    LOG("Memory usage: %ld", usage.ru_maxvm);
+    ASSERT(usage.ru_maxvm != 0);
+
+    EXIT_SUCC();
 }
 
 int main() {
-	pid_t pid = fork();
-	ASSERT(pid >= 0);
-	if (pid == 0) {
-		child();
-	} else {
-		parent(pid);
-	}
+    pid_t pid = fork();
+    ASSERT(pid >= 0);
+    if (pid == 0) {
+        child();
+    } else {
+        parent(pid);
+    }
 }
