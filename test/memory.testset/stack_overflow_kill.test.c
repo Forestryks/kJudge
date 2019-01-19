@@ -30,8 +30,8 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-const long MEMLIMIT_KB     = 50 * 1024;     // 50 MB
-const long MIN_MEMUSAGE_KB = 30 * 1024;     // 30 MB
+#define MEMLIMIT_KB     (long)(50 * 1024) // 50 MB
+#define MIN_MEMUSAGE_KB (long)(30 * 1024) // 30 MB
 
 void rec() {
     rec();

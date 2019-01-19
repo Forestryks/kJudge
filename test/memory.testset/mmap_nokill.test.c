@@ -31,8 +31,8 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-const long MEMLIMIT_KB = 50 * 1024;     // 50 MB
-const long MMAP_SIZE_KB   = 40 * 1024;     // 40 MB
+#define MEMLIMIT_KB  (long)(50 * 1024) // 50 MB
+#define MMAP_SIZE_KB (long)(40 * 1024) // 40 MB
 
 void child() {
     void *addr;

@@ -32,9 +32,8 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-const long MEMLIMIT_KB     = 200 * 1024;    // 200 MB
-const long MIN_MEMUSAGE_KB = 15 * 1024;     // 1 MB
-const long REC_DEPTH       = MIN_MEMUSAGE_KB * 2 * 1024 / 2 * sizeof(long);
+#define MIN_MEMUSAGE_KB (long)(15 * 1024) // 15 MB
+#define REC_DEPTH       (long)(MIN_MEMUSAGE_KB * 2 * 1024 / 2 * sizeof(int))
 
 void rec(long x) {
     if (x == REC_DEPTH) return;
@@ -42,12 +41,6 @@ void rec(long x) {
 }
 
 void child() {
-    struct rlimit rlim = {
-        .rlim_cur = MEMLIMIT_KB * 1024,
-        .rlim_max = MEMLIMIT_KB * 1024
-    };
-
-    ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
     rec(0);
