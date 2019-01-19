@@ -62,8 +62,7 @@ def build_all(files):
         if extList[ext][0] is None:
             continue
         cwd = os.getcwd()
-        cmd = extList[ext][0].format(os.path.basename(file)[:-len(ext) - 1], cwd)
-        os.chdir(os.path.dirname(os.path.abspath(file)))
+        cmd = extList[ext][0].format(file[:pos], cwd)
         print(cmd)
         try:
             if os.system(cmd) != 0:
@@ -71,7 +70,6 @@ def build_all(files):
         except:
             print(tcol.FAIL + 'Compilation failed ({0})'.format(file) + tcol.END)
             exit(-1)
-        os.chdir(cwd)
 
     print('Build finished successfully')
 
