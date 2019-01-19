@@ -57,7 +57,7 @@ void parent(pid_t pid) {
     W_CLEARBITS(status);
     ASSERT(!WIFEXITED(status));
 
-    ASSERT(getrusage(RUSAGE_CHILDREN, &usage));
+    ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
     LOG("Memory usage: %ld", usage.ru_maxvm);
     ASSERT(usage.ru_maxvm != 0);
 
