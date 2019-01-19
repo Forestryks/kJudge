@@ -511,32 +511,54 @@ diff -ruNp linux-4.14.88/mm/memory.c linux-4.14.88-kjudge/mm/memory.c
  	mmu_notifier_invalidate_range_end(mm, address, end);
 diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
 --- linux-4.14.88/mm/mmap.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/mm/mmap.c	2019-01-19 14:55:16.008807762 +0300
-@@ -246,11 +246,23 @@ set_brk:
- 	userfaultfd_unmap_complete(mm, &uf);
- 	if (populate)
- 		mm_populate(oldbrk, newbrk - oldbrk);
-+	if (brk == -ENOMEM) {
-+		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
-+			printk(KERN_DEBUG "Process %s (pid %d) got memory limit on brk()\n", current->comm, current->pid);
-+			current->kj_flags |= KJ_WAS_MEMLIMIT;
-+		}
++++ linux-4.14.88-kjudge/mm/mmap.c	2019-01-19 16:21:47.470413059 +0300
+@@ -187,6 +187,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 	struct vm_area_struct *next;
+ 	unsigned long min_brk;
+ 	bool populate;
++	int do_brk_flags_ret;
+ 	LIST_HEAD(uf);
+ 
+ 	if (down_write_killable(&mm->mmap_sem))
+@@ -216,7 +217,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 	 */
+ 	if (check_data_rlimit(rlimit(RLIMIT_DATA), brk, mm->start_brk,
+ 			      mm->end_data, mm->start_data))
+-		goto out;
++		goto enomem;
+ 
+ 	newbrk = PAGE_ALIGN(brk);
+ 	oldbrk = PAGE_ALIGN(mm->brk);
+@@ -236,8 +237,12 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 		goto out;
+ 
+ 	/* Ok, looks good - let it rip. */
+-	if (do_brk_flags(oldbrk, newbrk-oldbrk, 0, &uf) < 0)
++	do_brk_flags_ret = do_brk_flags(oldbrk, newbrk-oldbrk, 0, &uf);
++	if (do_brk_flags_ret < 0) {
++		if (do_brk_flags_ret == -ENOMEM)
++			goto enomem;
+ 		goto out;
 +	}
+ 
+ set_brk:
+ 	mm->brk = brk;
+@@ -248,6 +253,14 @@ set_brk:
+ 		mm_populate(oldbrk, newbrk - oldbrk);
  	return brk;
  
++enomem:
++	if (current->kj_flags & KJ_STAT_MEMLIMIT) {
++		current->kj_flags |= KJ_WAS_MEMLIMIT;
++	}
++	retval = mm->brk;
++	up_write(&mm->mmap_sem);
++	return retval;
++
  out:
  	retval = mm->brk;
  	up_write(&mm->mmap_sem);
-+	if (retval == -ENOMEM) {
-+		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
-+			printk(KERN_DEBUG "Process %s (pid %d) got memory limit on brk()\n", current->comm, current->pid);
-+			current->kj_flags |= KJ_WAS_MEMLIMIT;
-+		}
-+	}
- 	return retval;
- }
- 
-@@ -1551,6 +1563,11 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+@@ -1551,6 +1564,11 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
  out_fput:
  	if (file)
  		fput(file);
@@ -548,7 +570,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  	return retval;
  }
  
-@@ -1573,8 +1590,14 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+@@ -1573,8 +1591,14 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
  	if (offset_in_page(a.offset))
  		return -EINVAL;
  
@@ -564,7 +586,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  }
  #endif /* __ARCH_WANT_SYS_OLD_MMAP */
  
-@@ -2213,12 +2236,20 @@ static int acct_stack_growth(struct vm_a
+@@ -2213,12 +2237,20 @@ static int acct_stack_growth(struct vm_a
  	unsigned long new_start;
  
  	/* address space limit tests */
@@ -587,7 +609,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  
  	/* mlock limit tests */
  	if (vma->vm_flags & VM_LOCKED) {
-@@ -2227,8 +2258,12 @@ static int acct_stack_growth(struct vm_a
+@@ -2227,8 +2259,12 @@ static int acct_stack_growth(struct vm_a
  		locked = mm->locked_vm + grow;
  		limit = rlimit(RLIMIT_MEMLOCK);
  		limit >>= PAGE_SHIFT;
@@ -601,7 +623,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  	}
  
  	/* Check to ensure the stack will not grow into a hugetlb-only region */
-@@ -2241,8 +2276,12 @@ static int acct_stack_growth(struct vm_a
+@@ -2241,8 +2277,12 @@ static int acct_stack_growth(struct vm_a
  	 * Overcommit..  This must be the final test, as it will
  	 * update security statistics.
  	 */
@@ -615,7 +637,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  
  	return 0;
  }
-@@ -2525,6 +2564,7 @@ static void unmap_region(struct mm_struc
+@@ -2525,6 +2565,7 @@ static void unmap_region(struct mm_struc
  	lru_add_drain();
  	tlb_gather_mmu(&tlb, mm, start, end);
  	update_hiwater_rss(mm);
@@ -623,7 +645,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  	unmap_vmas(&tlb, vma, start, end);
  	free_pgtables(&tlb, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
  				 next ? next->vm_start : USER_PGTABLES_CEILING);
-@@ -2869,6 +2909,11 @@ out:
+@@ -2869,6 +2910,11 @@ out:
  		mm_populate(ret, populate);
  	if (!IS_ERR_VALUE(ret))
  		ret = 0;
