@@ -14,17 +14,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* mmap_nokill.test.c
+/* brk_kill.test.c
  *
- * Check whether creating not so lagrge memory mapping via mmap()
- * will not fail with memory limit.
+ * Check whether brk() with large increment parameter fails with
+ * memory limit.
+ *
+ * On Linux, sbrk() is implemented as a library function that uses the
+ * brk() system call, so we can use sbrk() frunction to validate that
+ * brk() system call works properly.
  */
 
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include <errno.h>
 
@@ -32,11 +35,9 @@
 #include <kjudge.h>
 
 const long MEMLIMIT_KB = 50 * 1024;     // 50 MB
-const long MMAP_SIZE   = 40 * 1024;     // 40 MB
+const long BRK_SIZE   = 60 * 1024;     // 60 MB
 
 void child() {
-    void *addr;
-
     struct rlimit rlim = {
         .rlim_cur = MEMLIMIT_KB * 1024,
         .rlim_max = MEMLIMIT_KB * 1024
@@ -45,8 +46,8 @@ void child() {
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
-    ASSERT((addr = mmap(NULL, MMAP_SIZE * 1024, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) != MAP_FAILED);
-    ASSERT(munmap(addr, MMAP_SIZE * 1024) == 0);
+    ASSERT(sbrk(BRK_SIZE) == ((void *) -1));
+    ASSERT(errno == ENOMEM);
 
     exit(0);
 }
@@ -57,7 +58,7 @@ void parent(pid_t pid) {
 
     ASSERT(wait(&status) == pid);
 
-    ASSERT(W_WASMEMLIMIT(status) == 0);
+    ASSERT(W_WASMEMLIMIT(status));
     W_CLEARBITS(status);
     ASSERT(WIFEXITED(status) && WEXITSTATUS(status) == 0);
 

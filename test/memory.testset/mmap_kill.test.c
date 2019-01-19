@@ -17,7 +17,7 @@
 /* mmap_kill.test.c
  *
  * Check whether creating lagre memory mapping via mmap() fails with
- * memory limit error
+ * memory limit error.
  */
 
 #include <sys/resource.h>
