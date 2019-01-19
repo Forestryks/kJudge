@@ -30,7 +30,8 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-const long MEMLIMIT_KB = 50 * 1024;     // 50 MB
+const long MEMLIMIT_KB  = 50 * 1024;     // 50 MB
+const long MIN_MEMUSAGE_KB = 30 * 1024;     // 30 MB
 
 void rec() {
     rec();
@@ -59,7 +60,7 @@ void parent(pid_t pid) {
 
     ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
     LOG("Memory usage: %ld", usage.ru_maxvm);
-    ASSERT(usage.ru_maxvm != 0);
+    ASSERT(usage.ru_maxvm >= MIN_MEMUSAGE_KB);
 
     EXIT_SUCC();
 }

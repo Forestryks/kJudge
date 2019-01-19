@@ -35,7 +35,7 @@
 #include <kjudge.h>
 
 const long MEMLIMIT_KB = 50 * 1024;     // 50 MB
-const long BRK_SIZE    = 60 * 1024;     // 60 MB
+const long BRK_SIZE_KB    = 60 * 1024;     // 60 MB
 
 void child() {
     struct rlimit rlim = {
@@ -46,7 +46,7 @@ void child() {
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
-    ASSERT(sbrk(BRK_SIZE * 1024) == ((void *) -1));
+    ASSERT(sbrk(BRK_SIZE_KB * 1024) == ((void *) -1));
     ASSERT(errno == ENOMEM);
 
     exit(0);

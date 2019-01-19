@@ -32,7 +32,7 @@
 #include <kjudge.h>
 
 const long MEMLIMIT_KB = 50 * 1024;     // 50 MB
-const long MMAP_SIZE   = 60 * 1024;     // 60 MB
+const long MMAP_SIZE_KB   = 60 * 1024;     // 60 MB
 
 void child() {
     struct rlimit rlim = {
@@ -43,7 +43,7 @@ void child() {
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
-    ASSERT(mmap(NULL, MMAP_SIZE * 1024, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) == MAP_FAILED);
+    ASSERT(mmap(NULL, MMAP_SIZE_KB * 1024, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) == MAP_FAILED);
     ASSERT(errno == ENOMEM);
 
     exit(0);

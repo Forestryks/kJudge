@@ -14,14 +14,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* brk_nokill.test.c
+/* stack_overflow_kill.test.c
  *
- * Check whether brk() with not so large increment parameter not fails
- * with memory limit.
- *
- * On Linux, sbrk() is implemented as a library function that uses the
- * brk() system call, so we can use sbrk() frunction to validate that
- * brk() system call works properly.
+ * Check whether program is killed at stack overflow and
+ * WASMEMLIMIT_STACK is set
  */
 
 #include <sys/resource.h>
@@ -34,8 +30,13 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-const long MEMLIMIT_KB = 50 * 1024;     // 50 MB
-const long BRK_SIZE_KB    = 40 * 1024;     // 40 MB
+const long MEMLIMIT_KB  = 50 * 1024;     // 50 MB
+const long MIN_MEMUSAGE_KB = 15 * 1024;     // 30 MB
+
+void rec(int x) {
+    if (x == 200000) return;
+    rec(x + 1);
+}
 
 void child() {
     struct rlimit rlim = {
@@ -46,8 +47,7 @@ void child() {
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
-    ASSERT(sbrk(BRK_SIZE_KB * 1024) != ((void *) -1));
-
+    rec(0);
     exit(0);
 }
 
@@ -56,14 +56,13 @@ void parent(pid_t pid) {
     struct rusage usage;
 
     ASSERT(wait(&status) == pid);
-
-    ASSERT(W_WASMEMLIMIT(status) == 0);
+    ASSERT(!W_WASMEMLIMIT_STACK(status));
     W_CLEARBITS(status);
     ASSERT(WIFEXITED(status) && WEXITSTATUS(status) == 0);
 
     ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
     LOG("Memory usage: %ld", usage.ru_maxvm);
-    ASSERT(usage.ru_maxvm != 0);
+    ASSERT(usage.ru_maxvm >= MIN_MEMUSAGE_KB);
 
     EXIT_SUCC();
 }

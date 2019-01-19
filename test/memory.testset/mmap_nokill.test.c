@@ -32,7 +32,7 @@
 #include <kjudge.h>
 
 const long MEMLIMIT_KB = 50 * 1024;     // 50 MB
-const long MMAP_SIZE   = 40 * 1024;     // 40 MB
+const long MMAP_SIZE_KB   = 40 * 1024;     // 40 MB
 
 void child() {
     void *addr;
@@ -45,8 +45,8 @@ void child() {
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
-    ASSERT((addr = mmap(NULL, MMAP_SIZE * 1024, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) != MAP_FAILED);
-    ASSERT(munmap(addr, MMAP_SIZE * 1024) == 0);
+    ASSERT((addr = mmap(NULL, MMAP_SIZE_KB * 1024, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) != MAP_FAILED);
+    ASSERT(munmap(addr, MMAP_SIZE_KB * 1024) == 0);
 
     exit(0);
 }
