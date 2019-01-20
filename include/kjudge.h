@@ -17,6 +17,7 @@
 #ifndef _KJUDGE_H
 #define _KJUDGE_H
 
+#include <unistd.h>
 #include <sys/syscall.h>
 
 #define RLIMIT_MCPU				16
