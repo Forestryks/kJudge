@@ -31,8 +31,8 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-#define MEMLIMIT_KB  (long)(50 * 1024) // 50 MB
-#define MMAP_SIZE_KB (long)(60 * 1024) // 60 MB
+#define MEMLIMIT_KB  (long)(50 * 1024) /* 50 MB */
+#define MMAP_SIZE_KB (long)(60 * 1024) /* 60 MB */
 
 void child() {
     struct rlimit rlim = {

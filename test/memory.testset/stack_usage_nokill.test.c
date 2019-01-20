@@ -17,9 +17,6 @@
 /* stack_usage_nokill.test.c
  *
  * Check whether stack is taken into account when calculating vm size
- *
- * !!!IMPORTANT!!!
- * If this test fails, check that `ulimit -s` is big enough
  */
 
 #include <sys/resource.h>
@@ -32,7 +29,8 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-#define MIN_MEMUSAGE_KB (long)(15 * 1024) // 15 MB
+#define MEMLIMIT_KB     (long)(500 * 1024) // 500 MB
+#define MIN_MEMUSAGE_KB (long)(15 * 1024)  // 15 MB
 #define REC_DEPTH       (long)(MIN_MEMUSAGE_KB * 2 * 1024 / 2 * sizeof(int))
 
 void rec(long x) {
@@ -41,6 +39,19 @@ void rec(long x) {
 }
 
 void child() {
+    struct rlimit rlim = {
+        .rlim_cur = MEMLIMIT_KB * 1024,
+        .rlim_max = MEMLIMIT_KB * 1024
+    };
+
+    ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
+    if (setrlimit(RLIMIT_STACK, &rlim) != 0) {
+        if (errno == EPERM) {
+            FAIL("This test must be run as root");
+        } else {
+            FAIL("setrlimit(RLIMIT_STACK, &rlim) failed");
+        }
+    }
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
     rec(0);

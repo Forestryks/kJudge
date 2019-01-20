@@ -25,7 +25,8 @@ from sys import stderr, argv
 extList = {
     'c': ('gcc -I{1} -O0 {0}.c -o {0}', '{0}', '{0}'),
     'cpp': ('g++ -I{1} -O0 {0}.cpp -o {0}', '{0}', '{0}'),
-    'py': (None, 'python3 {0}.py', None)
+    'py': (None, 'python3 {0}.py', None),
+    'cc': ('gcc -I{1} -O0 {0}.cc -o {0}', None, '{0}')
 }
 
 
@@ -122,21 +123,22 @@ def run_all(files):
 
     for file in files:
         fname = file.replace('.testset/', '::')
+
+        pos = file.rfind('.')
+        ext = file[pos + 1:]
+        if extList[ext][1] is None:
+            continue
+
         bar = progress(fname)
         print(bar.next(), end='')
 
         log.write('=' * 70 + '\n')
         log.write('Running ' + fname + '\n')
         log.write('=' * 70 + '\n')
+        log.flush()
         try:
-            pos = file.rfind('.')
-            ext = file[pos + 1:]
-            if extList[ext][1] is None:
-                continue
-
-            log.flush()
             cmd = extList[ext][1].format(os.path.realpath(file[:pos]))
-            proc = subprocess.Popen(cmd.split(), stdout=log, stderr=log, cwd=os.path.dirname(os.path.realpath(file)))
+            proc = subprocess.Popen(cmd.split(), stdout=log, cwd=os.path.dirname(os.path.realpath(file)))
 
             while True:
                 try:

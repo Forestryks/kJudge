@@ -30,8 +30,8 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-#define MEMLIMIT_KB     (long)(50 * 1024) // 50 MB
-#define MIN_MEMUSAGE_KB (long)(30 * 1024) // 30 MB
+#define MEMLIMIT_KB     (long)(50 * 1024) /* 50 MB */
+#define MIN_MEMUSAGE_KB (long)(30 * 1024) /* 30 MB */
 
 void rec() {
     rec();
@@ -44,6 +44,13 @@ void child() {
     };
 
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
+    if (setrlimit(RLIMIT_STACK, &rlim) != 0) {
+        if (errno == EPERM) {
+            FAIL("This test must be run as root");
+        } else {
+            FAIL("setrlimit(RLIMIT_STACK, &rlim) failed");
+        }
+    }
     ASSERT(kj_isolate(IMEMLIMITATION) == 0);
 
     rec();
