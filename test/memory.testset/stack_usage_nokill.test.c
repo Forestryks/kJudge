@@ -31,7 +31,7 @@
 
 #define MEMLIMIT_KB     (long)(500 * 1024) // 500 MB
 #define MIN_MEMUSAGE_KB (long)(15 * 1024)  // 15 MB
-#define REC_DEPTH       (long)(MIN_MEMUSAGE_KB * 2 * 1024 / 2 * sizeof(int))
+#define REC_DEPTH       (long)(MIN_MEMUSAGE_KB * 2 * 1024 / 2 / sizeof(long))
 
 void rec(long x) {
     if (x == REC_DEPTH) return;
