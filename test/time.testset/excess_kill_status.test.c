@@ -14,9 +14,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* excess_kill.test.c
+/* excess_kill_status.test.c
  *
- * Checks whether execution is killed after time limit excess
+ * Checks whether execution is killed after time limit excess and
+ * time limit flag is set in status
  */
 
 #include <sys/resource.h>
@@ -56,7 +57,7 @@ void child() {
     for (;;) {
         work();
         now = clock();
-        if (1.0 * (now - start) * CLOCKS_PER_SEC / 1000 > TIME_LIMIT_MSEC) break;
+        if (1.0 * (now - start) / CLOCKS_PER_SEC * 1000 > TIME_LIMIT_MSEC * 2) break;
     }
     exit(0);
 }
