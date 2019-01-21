@@ -78,7 +78,7 @@ void parent(pid_t pid) {
 	time_usec = (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * 1000000 +
 		      (usage.ru_utime.tv_usec + usage.ru_stime.tv_usec);
 
-    LOG("Time limit: %9ldus", TIME_LIMIT_MSEC);
+    LOG("Time limit: %9ldus", TIME_LIMIT_MSEC * 1000);
     LOG("Time usage: %9ldus", time_usec);
 
 	EXIT_SUCC();
