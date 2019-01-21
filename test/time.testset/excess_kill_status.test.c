@@ -30,67 +30,66 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-#define TIME_LIMIT_MS (long)(500) /* 500ms == 1s */
+#define TIME_LIMIT_MSEC (long)(500) /* 500ms == 1s */
 
 void work() {
-	const int MX = 10000000;
-	int v1 = 0, v2 = 1, i;
-	for (i = 0; i < MX; ++i) {
-		v1 = v2 + v1;
-		v1 ^= v2;
-		v2 ^= v1;
-		v1 ^= v2;
-	}
+    const int MX = 100000000;
+    int v1 = 0, v2 = 1, i;
+    for (i = 0; i < MX; ++i) {
+        v1 = v2 + v1;
+        v1 ^= v2;
+        v2 ^= v1;
+        v1 ^= v2;
+    }
 }
 
 void child() {
-	struct rlimit rlim = {
-		.rlim_cur = TIME_LIMIT_MS,
-		.rlim_max = TIME_LIMIT_MS
-	};
+    struct rlimit rlim = {
+        .rlim_cur = TIME_LIMIT_MSEC,
+        .rlim_max = TIME_LIMIT_MSEC
+    };
 
-	ASSERT(kj_isolate(ITIMELIMITATION) == 0);
-	ASSERT(setrlimit(RLIMIT_MCPU, &rlim) == 0);
+    ASSERT(kj_isolate(ITIMELIMITATION) == 0);
+    ASSERT(setrlimit(RLIMIT_MCPU, &rlim) == 0);
 
-	clock_t now, start = clock();
-	for (;;) {
-		work();
-		now = clock();
-		if (1.0 * (now - start) * CLOCKS_PER_SEC * 1000 > TIME_LIMIT_MS) break;
-	}
-	exit(0);
+    clock_t now, start = clock();
+    for (;;) {
+        work();
+        now = clock();
+        if (1.0 * (now - start) * CLOCKS_PER_SEC / 1000 > TIME_LIMIT_MSEC) break;
+    }
+    exit(0);
 }
 
 void parent(pid_t pid) {
-	int status;
-	long time_us, time_ms;
-	struct rusage usage;
+    int status;
+    long time_usec;
+    struct rusage usage;
 
-	ASSERT(wait(&status) == pid);
+    ASSERT(wait(&status) == pid);
 
-	ASSERT(W_WASTIMELIMIT(status));
-	W_CLEARBITS(status);
-	ASSERT(!WIFEXITED(status));
+    ASSERT(W_WASTIMELIMIT(status));
+    W_CLEARBITS(status);
+    ASSERT(!WIFEXITED(status));
 
-	ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
+    ASSERT(getrusage(RUSAGE_CHILDREN, &usage) == 0);
 
-	time_us = (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * 1000000 +
-		      (usage.ru_utime.tv_usec + usage.ru_stime.tv_usec);
-	time_ms = time_us / 1000;
+    time_usec = (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * 1000000 +
+              (usage.ru_utime.tv_usec + usage.ru_stime.tv_usec);
 
-    LOG("Time limit: %ldms", TIME_LIMIT_MS);
-    LOG("Time usage: %ldms", time_ms);
-    ASSERT(abs(time_ms - TIME_LIMIT_MS) <= 10);
+    LOG("Time limit: %9ldus", TIME_LIMIT_MSEC * 1000);
+    LOG("Time usage: %9ldus", time_usec);
+    ASSERT(abs(time_usec - TIME_LIMIT_MSEC * 1000) <= 20000);
 
-	EXIT_SUCC();
+    EXIT_SUCC();
 }
 
 int main() {
     pid_t pid = fork();
     ASSERT(pid >= 0);
     if (pid == 0) {
-    	child();
+        child();
     } else {
-    	parent(pid);
+        parent(pid);
     }
 }

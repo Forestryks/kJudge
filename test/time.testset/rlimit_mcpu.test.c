@@ -26,12 +26,12 @@
 #include <simple_test.h>
 #include <kjudge.h>
 
-#define TIME_LIMIT_MS (long)(1000) /* 1000ms == 1s */
+#define TIME_LIMIT_MSEC (long)(1000) /* 1000ms == 1s */
 
 int main() {
     struct rlimit rlim = {
-        .rlim_cur = TIME_LIMIT_MS,
-        .rlim_max = TIME_LIMIT_MS
+        .rlim_cur = TIME_LIMIT_MSEC,
+        .rlim_max = TIME_LIMIT_MSEC
     };
 
     ASSERT(setrlimit(RLIMIT_MCPU, &rlim) == 0)
