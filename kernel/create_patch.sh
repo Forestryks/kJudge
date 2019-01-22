@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=4.14.88
+VERSION=4.19.16
 cat > kjudge-linux-$VERSION.patch << EOF
 Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
 

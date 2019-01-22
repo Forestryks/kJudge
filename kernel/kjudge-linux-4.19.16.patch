@@ -13,21 +13,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-diff -ruNp linux-4.14.88/arch/x86/entry/syscalls/syscall_64.tbl linux-4.14.88-kjudge/arch/x86/entry/syscalls/syscall_64.tbl
---- linux-4.14.88/arch/x86/entry/syscalls/syscall_64.tbl	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/arch/x86/entry/syscalls/syscall_64.tbl	2019-01-18 17:11:23.614633277 +0300
-@@ -339,6 +339,7 @@
- 330	common	pkey_alloc		sys_pkey_alloc
- 331	common	pkey_free		sys_pkey_free
- 332	common	statx			sys_statx
-+333	common	kj_isolate		sys_kj_isolate
+diff -ruNp linux-4.19.16/arch/x86/entry/syscalls/syscall_64.tbl linux-4.19.16-kjudge/arch/x86/entry/syscalls/syscall_64.tbl
+--- linux-4.19.16/arch/x86/entry/syscalls/syscall_64.tbl	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/arch/x86/entry/syscalls/syscall_64.tbl	2019-01-22 20:33:19.285899295 +0300
+@@ -343,6 +343,7 @@
+ 332	common	statx			__x64_sys_statx
+ 333	common	io_pgetevents		__x64_sys_io_pgetevents
+ 334	common	rseq			__x64_sys_rseq
++335	common	kj_isolate		sys_kj_isolate
  
  #
  # x32-specific system call numbers start at 512 to avoid cache impact
-diff -ruNp linux-4.14.88/fs/exec.c linux-4.14.88-kjudge/fs/exec.c
---- linux-4.14.88/fs/exec.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/fs/exec.c	2019-01-18 18:20:21.915638797 +0300
-@@ -1035,6 +1035,7 @@ static int exec_mmap(struct mm_struct *m
+diff -ruNp linux-4.19.16/fs/exec.c linux-4.19.16-kjudge/fs/exec.c
+--- linux-4.19.16/fs/exec.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/fs/exec.c	2019-01-22 20:33:19.285899295 +0300
+@@ -1039,6 +1039,7 @@ static int exec_mmap(struct mm_struct *m
  		up_read(&old_mm->mmap_sem);
  		BUG_ON(active_mm != old_mm);
  		setmax_mm_hiwater_rss(&tsk->signal->maxrss, old_mm);
@@ -35,7 +35,7 @@ diff -ruNp linux-4.14.88/fs/exec.c linux-4.14.88-kjudge/fs/exec.c
  		mm_update_next_owner(old_mm);
  		mmput(old_mm);
  		return 0;
-@@ -1834,6 +1835,12 @@ out_files:
+@@ -1853,6 +1854,12 @@ out_files:
  	if (displaced)
  		reset_files_struct(displaced);
  out_ret:
@@ -45,13 +45,13 @@ diff -ruNp linux-4.14.88/fs/exec.c linux-4.14.88-kjudge/fs/exec.c
 +		}
 +	}
 +
- 	putname(filename);
+ 	if (filename)
+ 		putname(filename);
  	return retval;
- }
-diff -ruNp linux-4.14.88/fs/proc/base.c linux-4.14.88-kjudge/fs/proc/base.c
---- linux-4.14.88/fs/proc/base.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/fs/proc/base.c	2019-01-18 17:11:23.614633277 +0300
-@@ -584,6 +584,7 @@ static const struct limit_names lnames[R
+diff -ruNp linux-4.19.16/fs/proc/base.c linux-4.19.16-kjudge/fs/proc/base.c
+--- linux-4.19.16/fs/proc/base.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/fs/proc/base.c	2019-01-22 20:33:19.285899295 +0300
+@@ -562,6 +562,7 @@ static const struct limit_names lnames[R
  	[RLIMIT_NICE] = {"Max nice priority", NULL},
  	[RLIMIT_RTPRIO] = {"Max realtime priority", NULL},
  	[RLIMIT_RTTIME] = {"Max realtime timeout", "us"},
@@ -59,9 +59,9 @@ diff -ruNp linux-4.14.88/fs/proc/base.c linux-4.14.88-kjudge/fs/proc/base.c
  };
  
  /* Display limits for a process */
-diff -ruNp linux-4.14.88/include/asm-generic/resource.h linux-4.14.88-kjudge/include/asm-generic/resource.h
---- linux-4.14.88/include/asm-generic/resource.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/asm-generic/resource.h	2019-01-18 17:11:23.614633277 +0300
+diff -ruNp linux-4.19.16/include/asm-generic/resource.h linux-4.19.16-kjudge/include/asm-generic/resource.h
+--- linux-4.19.16/include/asm-generic/resource.h	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/include/asm-generic/resource.h	2019-01-22 20:33:19.285899295 +0300
 @@ -26,6 +26,7 @@
  	[RLIMIT_NICE]		= { 0, 0 },				\
  	[RLIMIT_RTPRIO]		= { 0, 0 },				\
@@ -70,10 +70,10 @@ diff -ruNp linux-4.14.88/include/asm-generic/resource.h linux-4.14.88-kjudge/inc
  }
  
  #endif
-diff -ruNp linux-4.14.88/include/linux/mm.h linux-4.14.88-kjudge/include/linux/mm.h
---- linux-4.14.88/include/linux/mm.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/mm.h	2019-01-18 19:16:07.238836368 +0300
-@@ -1567,6 +1567,11 @@ static inline void reset_mm_hiwater_rss(
+diff -ruNp linux-4.19.16/include/linux/mm.h linux-4.19.16-kjudge/include/linux/mm.h
+--- linux-4.19.16/include/linux/mm.h	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/include/linux/mm.h	2019-01-22 20:33:19.285899295 +0300
+@@ -1664,6 +1664,11 @@ static inline void reset_mm_hiwater_rss(
  	mm->hiwater_rss = get_mm_rss(mm);
  }
  
@@ -85,7 +85,7 @@ diff -ruNp linux-4.14.88/include/linux/mm.h linux-4.14.88-kjudge/include/linux/m
  static inline void setmax_mm_hiwater_rss(unsigned long *maxrss,
  					 struct mm_struct *mm)
  {
-@@ -1576,6 +1581,15 @@ static inline void setmax_mm_hiwater_rss
+@@ -1673,6 +1678,15 @@ static inline void setmax_mm_hiwater_rss
  		*maxrss = hiwater_rss;
  }
  
@@ -101,10 +101,10 @@ diff -ruNp linux-4.14.88/include/linux/mm.h linux-4.14.88-kjudge/include/linux/m
  #if defined(SPLIT_RSS_COUNTING)
  void sync_mm_rss(struct mm_struct *mm);
  #else
-diff -ruNp linux-4.14.88/include/linux/posix-timers.h linux-4.14.88-kjudge/include/linux/posix-timers.h
---- linux-4.14.88/include/linux/posix-timers.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/posix-timers.h	2019-01-18 17:11:23.614633277 +0300
-@@ -112,6 +112,7 @@ void set_process_cpu_timer(struct task_s
+diff -ruNp linux-4.19.16/include/linux/posix-timers.h linux-4.19.16-kjudge/include/linux/posix-timers.h
+--- linux-4.19.16/include/linux/posix-timers.h	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/include/linux/posix-timers.h	2019-01-22 20:33:19.289898971 +0300
+@@ -125,6 +125,7 @@ void set_process_cpu_timer(struct task_s
  			   u64 *newval, u64 *oldval);
  
  void update_rlimit_cpu(struct task_struct *task, unsigned long rlim_new);
@@ -112,10 +112,10 @@ diff -ruNp linux-4.14.88/include/linux/posix-timers.h linux-4.14.88-kjudge/inclu
  
  void posixtimer_rearm(struct siginfo *info);
  #endif
-diff -ruNp linux-4.14.88/include/linux/sched/signal.h linux-4.14.88-kjudge/include/linux/sched/signal.h
---- linux-4.14.88/include/linux/sched/signal.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/sched/signal.h	2019-01-18 18:13:48.727171775 +0300
-@@ -177,6 +177,7 @@ struct signal_struct {
+diff -ruNp linux-4.19.16/include/linux/sched/signal.h linux-4.19.16-kjudge/include/linux/sched/signal.h
+--- linux-4.19.16/include/linux/sched/signal.h	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/include/linux/sched/signal.h	2019-01-22 20:33:19.289898971 +0300
+@@ -186,6 +186,7 @@ struct signal_struct {
  	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
  	unsigned long inblock, oublock, cinblock, coublock;
  	unsigned long maxrss, cmaxrss;
@@ -123,10 +123,10 @@ diff -ruNp linux-4.14.88/include/linux/sched/signal.h linux-4.14.88-kjudge/inclu
  	struct task_io_accounting ioac;
  
  	/*
-diff -ruNp linux-4.14.88/include/linux/sched.h linux-4.14.88-kjudge/include/linux/sched.h
---- linux-4.14.88/include/linux/sched.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/sched.h	2019-01-18 17:11:23.614633277 +0300
-@@ -65,6 +65,24 @@ struct task_group;
+diff -ruNp linux-4.19.16/include/linux/sched.h linux-4.19.16-kjudge/include/linux/sched.h
+--- linux-4.19.16/include/linux/sched.h	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/include/linux/sched.h	2019-01-22 20:33:19.289898971 +0300
+@@ -66,6 +66,24 @@ struct task_group;
   * mistake.
   */
  
@@ -151,7 +151,7 @@ diff -ruNp linux-4.14.88/include/linux/sched.h linux-4.14.88-kjudge/include/linu
  /* Used in tsk->state: */
  #define TASK_RUNNING			0x0000
  #define TASK_INTERRUPTIBLE		0x0001
-@@ -1138,6 +1156,8 @@ struct task_struct {
+@@ -1193,6 +1211,8 @@ struct task_struct {
  	void				*security;
  #endif
  
@@ -160,19 +160,20 @@ diff -ruNp linux-4.14.88/include/linux/sched.h linux-4.14.88-kjudge/include/linu
  	/*
  	 * New fields for task_struct should be added above here, so that
  	 * they are included in the randomized portion of task_struct.
-diff -ruNp linux-4.14.88/include/linux/syscalls.h linux-4.14.88-kjudge/include/linux/syscalls.h
---- linux-4.14.88/include/linux/syscalls.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/linux/syscalls.h	2019-01-18 17:11:23.618633291 +0300
-@@ -940,5 +940,6 @@ asmlinkage long sys_pkey_alloc(unsigned
- asmlinkage long sys_pkey_free(int pkey);
- asmlinkage long sys_statx(int dfd, const char __user *path, unsigned flags,
+diff -ruNp linux-4.19.16/include/linux/syscalls.h linux-4.19.16-kjudge/include/linux/syscalls.h
+--- linux-4.19.16/include/linux/syscalls.h	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/include/linux/syscalls.h	2019-01-22 20:33:19.289898971 +0300
+@@ -906,6 +906,7 @@ asmlinkage long sys_statx(int dfd, const
  			  unsigned mask, struct statx __user *buffer);
+ asmlinkage long sys_rseq(struct rseq __user *rseq, uint32_t rseq_len,
+ 			 int flags, uint32_t sig);
 +asmlinkage long sys_kj_isolate(unsigned flags);
  
- #endif
-diff -ruNp linux-4.14.88/include/uapi/asm-generic/resource.h linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h
---- linux-4.14.88/include/uapi/asm-generic/resource.h	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/include/uapi/asm-generic/resource.h	2019-01-18 17:11:23.618633291 +0300
+ /*
+  * Architecture-specific system calls
+diff -ruNp linux-4.19.16/include/uapi/asm-generic/resource.h linux-4.19.16-kjudge/include/uapi/asm-generic/resource.h
+--- linux-4.19.16/include/uapi/asm-generic/resource.h	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/include/uapi/asm-generic/resource.h	2019-01-22 20:33:19.289898971 +0300
 @@ -46,7 +46,8 @@
  					   0-39 for nice level 19 .. -20 */
  #define RLIMIT_RTPRIO		14	/* maximum realtime priority */
@@ -183,10 +184,10 @@ diff -ruNp linux-4.14.88/include/uapi/asm-generic/resource.h linux-4.14.88-kjudg
  
  /*
   * SuS says limits have to be unsigned.
-diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
---- linux-4.14.88/kernel/exit.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/exit.c	2019-01-18 18:19:56.693371561 +0300
-@@ -838,8 +838,10 @@ void __noreturn do_exit(long code)
+diff -ruNp linux-4.19.16/kernel/exit.c linux-4.19.16-kjudge/kernel/exit.c
+--- linux-4.19.16/kernel/exit.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/kernel/exit.c	2019-01-22 20:33:19.289898971 +0300
+@@ -840,8 +840,10 @@ void __noreturn do_exit(long code)
  		hrtimer_cancel(&tsk->signal->real_timer);
  		exit_itimers(tsk->signal);
  #endif
@@ -198,7 +199,7 @@ diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
  	}
  	acct_collect(code, group_dead);
  	if (group_dead)
-@@ -1087,7 +1089,7 @@ static int wait_task_zombie(struct wait_
+@@ -1081,7 +1083,7 @@ static int wait_task_zombie(struct wait_
  	if (state == EXIT_DEAD && thread_group_leader(p)) {
  		struct signal_struct *sig = p->signal;
  		struct signal_struct *psig = current->signal;
@@ -207,7 +208,7 @@ diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
  		u64 tgutime, tgstime;
  
  		/*
-@@ -1133,6 +1135,9 @@ static int wait_task_zombie(struct wait_
+@@ -1127,6 +1129,9 @@ static int wait_task_zombie(struct wait_
  		maxrss = max(sig->maxrss, sig->cmaxrss);
  		if (psig->cmaxrss < maxrss)
  			psig->cmaxrss = maxrss;
@@ -217,7 +218,7 @@ diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
  		task_io_accounting_add(&psig->ioac, &p->ioac);
  		task_io_accounting_add(&psig->ioac, &sig->ioac);
  		write_sequnlock(&psig->stats_lock);
-@@ -1143,6 +1148,15 @@ static int wait_task_zombie(struct wait_
+@@ -1137,6 +1142,15 @@ static int wait_task_zombie(struct wait_
  		getrusage(p, RUSAGE_BOTH, wo->wo_rusage);
  	status = (p->signal->flags & SIGNAL_GROUP_EXIT)
  		? p->signal->group_exit_code : p->exit_code;
@@ -233,13 +234,14 @@ diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
  	wo->wo_stat = status;
  
  	if (state == EXIT_TRACE) {
-@@ -1258,10 +1272,19 @@ unlock_sig:
+@@ -1252,10 +1266,19 @@ unlock_sig:
  	sched_annotate_sleep();
  	if (wo->wo_rusage)
  		getrusage(p, RUSAGE_BOTH, wo->wo_rusage);
 -	put_task_struct(p);
- 
+-
 -	if (likely(!(wo->wo_flags & WNOWAIT)))
++	
 +	if (likely(!(wo->wo_flags & WNOWAIT))) {
  		wo->wo_stat = (exit_code << 8) | 0x7f;
 +		if ((p->kj_flags & KJ_STAT_MEMLIMIT) && (p->kj_flags & KJ_WAS_MEMLIMIT))
@@ -255,10 +257,10 @@ diff -ruNp linux-4.14.88/kernel/exit.c linux-4.14.88-kjudge/kernel/exit.c
  
  	infop = wo->wo_info;
  	if (infop) {
-diff -ruNp linux-4.14.88/kernel/fork.c linux-4.14.88-kjudge/kernel/fork.c
---- linux-4.14.88/kernel/fork.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/fork.c	2019-01-18 17:11:23.618633291 +0300
-@@ -1377,11 +1377,17 @@ static void posix_cpu_timers_init_group(
+diff -ruNp linux-4.19.16/kernel/fork.c linux-4.19.16-kjudge/kernel/fork.c
+--- linux-4.19.16/kernel/fork.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/kernel/fork.c	2019-01-22 20:38:40.769266946 +0300
+@@ -1453,11 +1453,17 @@ static void posix_cpu_timers_init_group(
  	unsigned long cpu_limit;
  
  	cpu_limit = READ_ONCE(sig->rlim[RLIMIT_CPU].rlim_cur);
@@ -277,10 +279,10 @@ diff -ruNp linux-4.14.88/kernel/fork.c linux-4.14.88-kjudge/kernel/fork.c
  	/* The timer lists. */
  	INIT_LIST_HEAD(&sig->cpu_timers[0]);
  	INIT_LIST_HEAD(&sig->cpu_timers[1]);
-diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
---- linux-4.14.88/kernel/sys.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/sys.c	2019-01-18 19:02:03.864783204 +0300
-@@ -1476,6 +1476,14 @@ int do_prlimit(struct task_struct *tsk,
+diff -ruNp linux-4.19.16/kernel/sys.c linux-4.19.16-kjudge/kernel/sys.c
+--- linux-4.19.16/kernel/sys.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/kernel/sys.c	2019-01-22 20:33:19.289898971 +0300
+@@ -1534,6 +1534,14 @@ int do_prlimit(struct task_struct *tsk,
  		if (resource == RLIMIT_NOFILE &&
  				new_rlim->rlim_max > sysctl_nr_open)
  			return -EPERM;
@@ -295,7 +297,7 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  	}
  
  	/* protect tsk->signal and tsk->sighand from disappearing */
-@@ -1495,7 +1503,7 @@ int do_prlimit(struct task_struct *tsk,
+@@ -1553,7 +1561,7 @@ int do_prlimit(struct task_struct *tsk,
  			retval = -EPERM;
  		if (!retval)
  			retval = security_task_setrlimit(tsk, resource, new_rlim);
@@ -304,7 +306,7 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  			/*
  			 * The caller is asking for an immediate RLIMIT_CPU
  			 * expiry.  But we use the zero value to mean "it was
-@@ -1523,6 +1531,12 @@ int do_prlimit(struct task_struct *tsk,
+@@ -1581,6 +1589,12 @@ int do_prlimit(struct task_struct *tsk,
  	     new_rlim->rlim_cur != RLIM_INFINITY &&
  	     IS_ENABLED(CONFIG_POSIX_TIMERS))
  		update_rlimit_cpu(tsk, new_rlim->rlim_cur);
@@ -317,7 +319,7 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  out:
  	read_unlock(&tasklist_lock);
  	return retval;
-@@ -1655,7 +1669,7 @@ void getrusage(struct task_struct *p, in
+@@ -1713,7 +1727,7 @@ void getrusage(struct task_struct *p, in
  	struct task_struct *t;
  	unsigned long flags;
  	u64 tgutime, tgstime, utime, stime;
@@ -326,7 +328,7 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  
  	memset((char *)r, 0, sizeof (*r));
  	utime = stime = 0;
-@@ -1664,6 +1678,7 @@ void getrusage(struct task_struct *p, in
+@@ -1722,6 +1736,7 @@ void getrusage(struct task_struct *p, in
  		task_cputime_adjusted(current, &utime, &stime);
  		accumulate_thread_rusage(p, r);
  		maxrss = p->signal->maxrss;
@@ -334,7 +336,7 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  		goto out;
  	}
  
-@@ -1682,6 +1697,7 @@ void getrusage(struct task_struct *p, in
+@@ -1740,6 +1755,7 @@ void getrusage(struct task_struct *p, in
  		r->ru_inblock = p->signal->cinblock;
  		r->ru_oublock = p->signal->coublock;
  		maxrss = p->signal->cmaxrss;
@@ -342,7 +344,7 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  
  		if (who == RUSAGE_CHILDREN)
  			break;
-@@ -1698,6 +1714,8 @@ void getrusage(struct task_struct *p, in
+@@ -1756,6 +1772,8 @@ void getrusage(struct task_struct *p, in
  		r->ru_oublock += p->signal->oublock;
  		if (maxrss < p->signal->maxrss)
  			maxrss = p->signal->maxrss;
@@ -351,7 +353,7 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  		t = p;
  		do {
  			accumulate_thread_rusage(t, r);
-@@ -1718,10 +1736,12 @@ out:
+@@ -1776,10 +1794,12 @@ out:
  
  		if (mm) {
  			setmax_mm_hiwater_rss(&maxrss, mm);
@@ -364,7 +366,7 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
  }
  
  SYSCALL_DEFINE2(getrusage, int, who, struct rusage __user *, ru)
-@@ -2569,3 +2589,13 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct c
+@@ -2639,3 +2659,13 @@ COMPAT_SYSCALL_DEFINE1(sysinfo, struct c
  	return 0;
  }
  #endif /* CONFIG_COMPAT */
@@ -378,10 +380,10 @@ diff -ruNp linux-4.14.88/kernel/sys.c linux-4.14.88-kjudge/kernel/sys.c
 +	if (flags & KJ_ISOLATE_TIMELIMIT) current->kj_flags |= KJ_STAT_TIMELIMIT;
 +	return 0;
 +}
-diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c
---- linux-4.14.88/kernel/time/posix-cpu-timers.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/kernel/time/posix-cpu-timers.c	2019-01-18 17:11:23.618633291 +0300
-@@ -34,6 +34,15 @@ void update_rlimit_cpu(struct task_struc
+diff -ruNp linux-4.19.16/kernel/time/posix-cpu-timers.c linux-4.19.16-kjudge/kernel/time/posix-cpu-timers.c
+--- linux-4.19.16/kernel/time/posix-cpu-timers.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/kernel/time/posix-cpu-timers.c	2019-01-22 20:38:29.233854594 +0300
+@@ -35,6 +35,15 @@ void update_rlimit_cpu(struct task_struc
  	spin_unlock_irq(&task->sighand->siglock);
  }
  
@@ -397,7 +399,7 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  static int check_clock(const clockid_t which_clock)
  {
  	int error = 0;
-@@ -833,6 +842,9 @@ static void check_thread_timers(struct t
+@@ -844,6 +853,9 @@ static void check_thread_timers(struct t
  			 * At the hard limit, we just die.
  			 * No need to calculate anything else now.
  			 */
@@ -407,16 +409,16 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  			if (print_fatal_signals) {
  				pr_info("CPU Watchdog Timeout (hard): %s[%d]\n",
  					tsk->comm, task_pid_nr(tsk));
-@@ -904,7 +916,7 @@ static void check_process_timers(struct
+@@ -915,7 +927,7 @@ static void check_process_timers(struct
  	u64 sum_sched_runtime, sched_expires;
  	struct list_head *timers = sig->cpu_timers;
  	struct task_cputime cputime;
 -	unsigned long soft;
-+	unsigned long soft, hard;
++	unsigned long soft, hard
  
- 	/*
- 	 * If cputimer is not running, then there are no active
-@@ -939,7 +951,7 @@ static void check_process_timers(struct
+ 	if (dl_task(tsk))
+ 		check_dl_overrun(tsk);
+@@ -953,7 +965,7 @@ static void check_process_timers(struct
  	check_cpu_itimer(tsk, &sig->it[CPUCLOCK_VIRT], &virt_expires, utime,
  			 SIGVTALRM);
  	soft = task_rlimit(tsk, RLIMIT_CPU);
@@ -425,7 +427,7 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  		unsigned long psecs = div_u64(ptime, NSEC_PER_SEC);
  		unsigned long hard = task_rlimit_max(tsk, RLIMIT_CPU);
  		u64 x;
-@@ -948,6 +960,9 @@ static void check_process_timers(struct
+@@ -962,6 +974,9 @@ static void check_process_timers(struct
  			 * At the hard limit, we just die.
  			 * No need to calculate anything else now.
  			 */
@@ -435,7 +437,7 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  			if (print_fatal_signals) {
  				pr_info("RT Watchdog Timeout (hard): %s[%d]\n",
  					tsk->comm, task_pid_nr(tsk));
-@@ -973,6 +988,31 @@ static void check_process_timers(struct
+@@ -987,6 +1002,31 @@ static void check_process_timers(struct
  		if (!prof_expires || x < prof_expires)
  			prof_expires = x;
  	}
@@ -467,21 +469,21 @@ diff -ruNp linux-4.14.88/kernel/time/posix-cpu-timers.c linux-4.14.88-kjudge/ker
  
  	sig->cputime_expires.prof_exp = prof_expires;
  	sig->cputime_expires.virt_exp = virt_expires;
-diff -ruNp linux-4.14.88/Makefile linux-4.14.88-kjudge/Makefile
---- linux-4.14.88/Makefile	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/Makefile	2019-01-18 18:38:05.841273985 +0300
+diff -ruNp linux-4.19.16/Makefile linux-4.19.16-kjudge/Makefile
+--- linux-4.19.16/Makefile	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/Makefile	2019-01-22 20:33:19.289898971 +0300
 @@ -2,7 +2,7 @@
  VERSION = 4
- PATCHLEVEL = 14
- SUBLEVEL = 88
+ PATCHLEVEL = 19
+ SUBLEVEL = 16
 -EXTRAVERSION =
 +EXTRAVERSION = -kjudge
- NAME = Petit Gorille
+ NAME = "People's Front"
  
  # *DOCUMENTATION*
-diff -ruNp linux-4.14.88/mm/madvise.c linux-4.14.88-kjudge/mm/madvise.c
---- linux-4.14.88/mm/madvise.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/mm/madvise.c	2019-01-18 19:26:12.911994223 +0300
+diff -ruNp linux-4.19.16/mm/madvise.c linux-4.19.16-kjudge/mm/madvise.c
+--- linux-4.19.16/mm/madvise.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/mm/madvise.c	2019-01-22 20:33:19.289898971 +0300
 @@ -476,6 +476,7 @@ static int madvise_free_single_vma(struc
  	lru_add_drain();
  	tlb_gather_mmu(&tlb, mm, start, end);
@@ -490,18 +492,18 @@ diff -ruNp linux-4.14.88/mm/madvise.c linux-4.14.88-kjudge/mm/madvise.c
  
  	mmu_notifier_invalidate_range_start(mm, start, end);
  	madvise_free_page_range(&tlb, vma, start, end);
-diff -ruNp linux-4.14.88/mm/memory.c linux-4.14.88-kjudge/mm/memory.c
---- linux-4.14.88/mm/memory.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/mm/memory.c	2019-01-18 19:28:06.441844969 +0300
-@@ -1609,6 +1609,7 @@ void zap_page_range(struct vm_area_struc
+diff -ruNp linux-4.19.16/mm/memory.c linux-4.19.16-kjudge/mm/memory.c
+--- linux-4.19.16/mm/memory.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/mm/memory.c	2019-01-22 20:33:19.289898971 +0300
+@@ -1605,6 +1605,7 @@ void zap_page_range(struct vm_area_struc
  	lru_add_drain();
  	tlb_gather_mmu(&tlb, mm, start, end);
  	update_hiwater_rss(mm);
 +	update_hiwater_vm(mm);
  	mmu_notifier_invalidate_range_start(mm, start, end);
- 	for ( ; vma && vma->vm_start < end; vma = vma->vm_next) {
+ 	for ( ; vma && vma->vm_start < end; vma = vma->vm_next)
  		unmap_single_vma(&tlb, vma, start, end, NULL);
-@@ -1647,6 +1648,7 @@ static void zap_page_range_single(struct
+@@ -1631,6 +1632,7 @@ static void zap_page_range_single(struct
  	lru_add_drain();
  	tlb_gather_mmu(&tlb, mm, address, end);
  	update_hiwater_rss(mm);
@@ -509,10 +511,10 @@ diff -ruNp linux-4.14.88/mm/memory.c linux-4.14.88-kjudge/mm/memory.c
  	mmu_notifier_invalidate_range_start(mm, address, end);
  	unmap_single_vma(&tlb, vma, address, end, details);
  	mmu_notifier_invalidate_range_end(mm, address, end);
-diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
---- linux-4.14.88/mm/mmap.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/mm/mmap.c	2019-01-19 16:21:47.470413059 +0300
-@@ -187,6 +187,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+diff -ruNp linux-4.19.16/mm/mmap.c linux-4.19.16-kjudge/mm/mmap.c
+--- linux-4.19.16/mm/mmap.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/mm/mmap.c	2019-01-22 20:40:20.080561618 +0300
+@@ -196,6 +196,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
  	struct vm_area_struct *next;
  	unsigned long min_brk;
  	bool populate;
@@ -520,7 +522,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  	LIST_HEAD(uf);
  
  	if (down_write_killable(&mm->mmap_sem))
-@@ -216,7 +217,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+@@ -225,7 +226,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
  	 */
  	if (check_data_rlimit(rlimit(RLIMIT_DATA), brk, mm->start_brk,
  			      mm->end_data, mm->start_data))
@@ -529,7 +531,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  
  	newbrk = PAGE_ALIGN(brk);
  	oldbrk = PAGE_ALIGN(mm->brk);
-@@ -236,8 +237,12 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+@@ -245,8 +246,12 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
  		goto out;
  
  	/* Ok, looks good - let it rip. */
@@ -543,7 +545,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  
  set_brk:
  	mm->brk = brk;
-@@ -248,6 +253,14 @@ set_brk:
+@@ -257,6 +262,14 @@ set_brk:
  		mm_populate(oldbrk, newbrk - oldbrk);
  	return brk;
  
@@ -558,7 +560,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  out:
  	retval = mm->brk;
  	up_write(&mm->mmap_sem);
-@@ -1551,6 +1564,11 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+@@ -1586,6 +1599,11 @@ unsigned long ksys_mmap_pgoff(unsigned l
  out_fput:
  	if (file)
  		fput(file);
@@ -570,13 +572,14 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  	return retval;
  }
  
-@@ -1573,8 +1591,14 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+@@ -1615,8 +1633,14 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
  	if (offset_in_page(a.offset))
  		return -EINVAL;
  
--	return sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
-+	long ret = sys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
- 			      a.offset >> PAGE_SHIFT);
+-	return ksys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
+-			       a.offset >> PAGE_SHIFT);
++	long ret = ksys_mmap_pgoff(a.addr, a.len, a.prot, a.flags, a.fd,
++			      a.offset >> PAGE_SHIFT);
 +	if (ret == -ENOMEM) {
 +		if (current->kj_flags & KJ_STAT_MEMLIMIT) {
 +			current->kj_flags |= KJ_WAS_MEMLIMIT;
@@ -586,7 +589,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  }
  #endif /* __ARCH_WANT_SYS_OLD_MMAP */
  
-@@ -2213,12 +2237,20 @@ static int acct_stack_growth(struct vm_a
+@@ -2256,12 +2280,20 @@ static int acct_stack_growth(struct vm_a
  	unsigned long new_start;
  
  	/* address space limit tests */
@@ -609,7 +612,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  
  	/* mlock limit tests */
  	if (vma->vm_flags & VM_LOCKED) {
-@@ -2227,8 +2259,12 @@ static int acct_stack_growth(struct vm_a
+@@ -2270,8 +2302,12 @@ static int acct_stack_growth(struct vm_a
  		locked = mm->locked_vm + grow;
  		limit = rlimit(RLIMIT_MEMLOCK);
  		limit >>= PAGE_SHIFT;
@@ -623,7 +626,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  	}
  
  	/* Check to ensure the stack will not grow into a hugetlb-only region */
-@@ -2241,8 +2277,12 @@ static int acct_stack_growth(struct vm_a
+@@ -2284,8 +2320,12 @@ static int acct_stack_growth(struct vm_a
  	 * Overcommit..  This must be the final test, as it will
  	 * update security statistics.
  	 */
@@ -637,7 +640,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  
  	return 0;
  }
-@@ -2525,6 +2565,7 @@ static void unmap_region(struct mm_struc
+@@ -2568,6 +2608,7 @@ static void unmap_region(struct mm_struc
  	lru_add_drain();
  	tlb_gather_mmu(&tlb, mm, start, end);
  	update_hiwater_rss(mm);
@@ -645,7 +648,7 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  	unmap_vmas(&tlb, vma, start, end);
  	free_pgtables(&tlb, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
  				 next ? next->vm_start : USER_PGTABLES_CEILING);
-@@ -2869,6 +2910,11 @@ out:
+@@ -2907,6 +2948,11 @@ out:
  		mm_populate(ret, populate);
  	if (!IS_ERR_VALUE(ret))
  		ret = 0;
@@ -657,10 +660,10 @@ diff -ruNp linux-4.14.88/mm/mmap.c linux-4.14.88-kjudge/mm/mmap.c
  	return ret;
  }
  
-diff -ruNp linux-4.14.88/mm/mremap.c linux-4.14.88-kjudge/mm/mremap.c
---- linux-4.14.88/mm/mremap.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/mm/mremap.c	2019-01-18 17:11:23.618633291 +0300
-@@ -637,5 +637,11 @@ out:
+diff -ruNp linux-4.19.16/mm/mremap.c linux-4.19.16-kjudge/mm/mremap.c
+--- linux-4.19.16/mm/mremap.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/mm/mremap.c	2019-01-22 20:33:19.293898647 +0300
+@@ -633,5 +633,11 @@ out:
  	userfaultfd_unmap_complete(mm, &uf_unmap_early);
  	mremap_userfaultfd_complete(&uf, addr, new_addr, old_len);
  	userfaultfd_unmap_complete(mm, &uf_unmap);
@@ -672,10 +675,10 @@ diff -ruNp linux-4.14.88/mm/mremap.c linux-4.14.88-kjudge/mm/mremap.c
 +	}
  	return ret;
  }
-diff -ruNp linux-4.14.88/mm/rmap.c linux-4.14.88-kjudge/mm/rmap.c
---- linux-4.14.88/mm/rmap.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/mm/rmap.c	2019-01-18 19:33:12.286981504 +0300
-@@ -1499,6 +1499,7 @@ static bool try_to_unmap_one(struct page
+diff -ruNp linux-4.19.16/mm/rmap.c linux-4.19.16-kjudge/mm/rmap.c
+--- linux-4.19.16/mm/rmap.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/mm/rmap.c	2019-01-22 20:33:19.293898647 +0300
+@@ -1504,6 +1504,7 @@ static bool try_to_unmap_one(struct page
  
  		/* Update high watermark before we lower rss */
  		update_hiwater_rss(mm);
@@ -683,22 +686,21 @@ diff -ruNp linux-4.14.88/mm/rmap.c linux-4.14.88-kjudge/mm/rmap.c
  
  		if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
  			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
-diff -ruNp linux-4.14.88/security/selinux/hooks.c linux-4.14.88-kjudge/security/selinux/hooks.c
---- linux-4.14.88/security/selinux/hooks.c	2018-12-13 11:18:54.000000000 +0300
-+++ linux-4.14.88-kjudge/security/selinux/hooks.c	2019-01-18 17:11:23.622633304 +0300
-@@ -2569,8 +2569,13 @@ static void selinux_bprm_committing_cred
+diff -ruNp linux-4.19.16/security/selinux/hooks.c linux-4.19.16-kjudge/security/selinux/hooks.c
+--- linux-4.19.16/security/selinux/hooks.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/security/selinux/hooks.c	2019-01-22 20:41:37.701274971 +0300
+@@ -2680,8 +2680,12 @@ static void selinux_bprm_committing_cred
  			rlim->rlim_cur = min(rlim->rlim_max, initrlim->rlim_cur);
  		}
  		task_unlock(current);
 -		if (IS_ENABLED(CONFIG_POSIX_TIMERS))
 -			update_rlimit_cpu(current, rlimit(RLIMIT_CPU));
-+
 +		if (IS_ENABLED(CONFIG_POSIX_TIMERS)) {
 +			if (unlikely((rlimit(RLIMIT_MCPU) != RLIM_INFINITY)))
 +				update_rlimit_mcpu(current, rlimit(RLIMIT_MCPU));
 +			else
 +				update_rlimit_cpu(current, rlimit(RLIMIT_CPU));
-+		}		
++		}
  	}
  }
  

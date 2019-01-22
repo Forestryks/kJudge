@@ -1,8 +1,9 @@
 #!/bin/bash
-if [ ! -f linux-4.14.88.tar.xz ]; then
-    wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.14.88.tar.xz
+VERSION=4.19.16
+if [ ! -f linux-${VERSION}.tar.xz ]; then
+    wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-${VERSION}.tar.xz
 fi
-tar -xf linux-4.14.88.tar.xz
-cp linux-4.14.88 linux-4.14.88-kjudge -r
-cd linux-4.14.88-kjudge
-patch -p1 < ../kjudge-linux-4.14.88.patch
+tar -xf linux-${VERSION}.tar.xz
+cp linux-${VERSION} linux-${VERSION}-kjudge -r
+cd linux-${VERSION}-kjudge
+patch -p1 < ../kjudge-linux-${VERSION}.patch
