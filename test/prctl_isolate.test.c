@@ -1,4 +1,5 @@
-/* Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
+/*
+ * Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* kj_isolate.test.c
+/*
+ * kj_isolate.test.c
  *
  * If this test fails, kernel patch is not working at all.
  */
@@ -23,6 +25,6 @@
 #include <simple_test.h>
 
 int main() {
-	ASSERT(kj_isolate(0) == 0);
+	ASSERT(prctl(PR_ISOLATE, 0, 0, 0, 0) == 0);
 	EXIT_SUCC();
 }

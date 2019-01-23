@@ -1,4 +1,5 @@
-/* Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
+/*
+ * Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* brk_nokill.test.c
+/*
+ * brk_nokill.test.c
  *
  * Check whether brk() with not so large increment parameter not fails
  * with memory limit.
@@ -44,7 +46,7 @@ void child() {
     };
 
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
-    ASSERT(kj_isolate(IMEMLIMITATION) == 0);
+    ASSERT(prctl(PR_ISOLATE, PR_MEMLIMITATION, 0, 0, 0) == 0);
 
     ASSERT(sbrk(BRK_SIZE_KB * 1024) != ((void *) -1));
 

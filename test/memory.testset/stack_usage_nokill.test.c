@@ -1,4 +1,5 @@
-/* Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
+/* 
+ * Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* stack_usage_nokill.test.c
+/*
+ * stack_usage_nokill.test.c
  *
  * Check whether stack is taken into account when calculating vm size
  */
@@ -52,7 +54,7 @@ void child() {
             FAIL("setrlimit(RLIMIT_STACK, &rlim) failed");
         }
     }
-    ASSERT(kj_isolate(IMEMLIMITATION) == 0);
+    ASSERT(prctl(PR_ISOLATE, PR_MEMLIMITATION, 0, 0, 0) == 0);
 
     rec(0);
     exit(0);

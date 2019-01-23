@@ -1,4 +1,5 @@
-/* Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
+/*
+ * Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* always_passes.test.c
+/*
+ * always_passes.test.c
  *
  * If this test fails, the problem is not in kernel but in
  * test framework.

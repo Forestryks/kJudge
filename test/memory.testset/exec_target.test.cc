@@ -1,4 +1,5 @@
-/* Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
+/*
+ * Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* exec_target.test.cc
+/*
+ * exec_target.test.cc
  *
  * Executed by some tests to check what happens on exec of program with
  * large data and BSS segments

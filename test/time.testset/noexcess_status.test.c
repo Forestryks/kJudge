@@ -1,4 +1,5 @@
-/* Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
+/*
+ * Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* noexcess_status.test.c
+/*
+ * noexcess_status.test.c
  *
  * Checks whether execution is not killed when time not exceed limit and
  * time limit flag is not set in status
@@ -50,8 +52,8 @@ void child() {
 		.rlim_max = TIME_LIMIT_MSEC
 	};
 
-	ASSERT(kj_isolate(ITIMELIMITATION) == 0);
 	ASSERT(setrlimit(RLIMIT_MCPU, &rlim) == 0);
+	ASSERT(prctl(PR_ISOLATE, PR_TIMELIMITATION, 0, 0, 0) == 0);
 
 	clock_t now, start = clock();
 	for (;;) {

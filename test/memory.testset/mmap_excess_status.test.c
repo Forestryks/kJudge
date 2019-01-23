@@ -1,4 +1,5 @@
-/* Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
+/*
+ * Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* mmap_kill.test.c
+/*
+ * mmap_kill.test.c
  *
  * Check whether creating lagre memory mapping via mmap() fails with
  * memory limit error.
@@ -41,7 +43,7 @@ void child() {
     };
 
     ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
-    ASSERT(kj_isolate(IMEMLIMITATION) == 0);
+    ASSERT(prctl(PR_ISOLATE, PR_MEMLIMITATION, 0, 0, 0) == 0);
 
     ASSERT(mmap(NULL, MMAP_SIZE_KB * 1024, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) == MAP_FAILED);
     ASSERT(errno == ENOMEM);

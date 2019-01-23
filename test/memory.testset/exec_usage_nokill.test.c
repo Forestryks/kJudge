@@ -1,4 +1,5 @@
-/* Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
+/*
+ * Copyright (C) 2019 Andrei Odintsov <forestryks1@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* exec_usage_nokill.test.c
+/*
+ * exec_usage_nokill.test.c
  *
  * Test whether data and BSS segment are taken into account when
  * calculating vm size
@@ -40,7 +42,7 @@ void child() {
 	};
 
 	ASSERT(setrlimit(RLIMIT_AS, &rlim) == 0);
-	ASSERT(kj_isolate(IMEMLIMITATION) == 0);
+	ASSERT(prctl(PR_ISOLATE, PR_MEMLIMITATION, 0, 0, 0) == 0);
 
 	ASSERT(execl(EXEC_TARGET, EXEC_TARGET, NULL) == 0); /* will not return on success */
 }
