@@ -65,7 +65,7 @@ void parent(pid_t pid) {
     struct rusage usage;
 
     ASSERT(wait(&status) == pid);
-    ASSERT(!W_WASMEMLIMIT_STACK(status));
+    ASSERT(!W_WAS_MEMLIMIT_STACK(status));
     W_CLEARBITS(status);
     ASSERT(WIFEXITED(status) && WEXITSTATUS(status) == 0);
 

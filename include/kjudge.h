@@ -23,21 +23,25 @@
 
 #define RLIMIT_MCPU				16
 
-#define _W_MEMLIMIT				0x10000
-#define _W_MEMLIMIT_STACK		0x20000
-#define _W_MEMLIMIT_EXEC		0x40000
-#define _W_TIMELIMIT			0x80000
+#define _W_MEMLIMIT				0x010000
+#define _W_MEMLIMIT_STACK		0x020000
+#define _W_MEMLIMIT_EXEC		0x040000
+#define _W_TIMELIMIT			0x080000
+#define _W_SECURITY_VIOLATION	0x100000
 #define _W_CLEARMASK			0x0ffff
 
-#define W_WASMEMLIMIT(x)		((x & _W_MEMLIMIT) != 0)
-#define W_WASMEMLIMIT_STACK(x)	((x & _W_MEMLIMIT_STACK) != 0)
-#define W_WASMEMLIMIT_EXEC(x)	((x & _W_MEMLIMIT_EXEC) != 0)
-#define W_WASTIMELIMIT(x)		((x & _W_TIMELIMIT) != 0)
-#define W_CLEARBITS(x)			(x &= _W_CLEARMASK)
+#define W_WAS_MEMLIMIT(x)			((x & _W_MEMLIMIT) != 0)
+#define W_WAS_MEMLIMIT_STACK(x)		((x & _W_MEMLIMIT_STACK) != 0)
+#define W_WAS_MEMLIMIT_EXEC(x)		((x & _W_MEMLIMIT_EXEC) != 0)
+#define W_WAS_TIMELIMIT(x)			((x & _W_TIMELIMIT) != 0)
+#define W_WAS_SECURITY_VIOLATION(x)	((x & _W_SECURITY_VIOLATION) != 0)
+#define W_VIOLATION_ID(x)			(x >> 22)
+#define W_CLEARBITS(x)				(x &= _W_CLEARMASK)
 
 #define PR_ISOLATE				54
 #define PR_MEMLIMITATION		0x0001
 #define PR_TIMELIMITATION		0x0002
+#define PR_SAFEMODE				0x0004
 
 #define ru_maxvm				ru_isrss
 
