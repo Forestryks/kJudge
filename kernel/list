@@ -1,371 +1,270 @@
-0 read
-1 write
-2 open
-3 close
-4 stat
-5 fstat
-6 lstat
-7 poll
-8 lseek
-9 mmap
-10 mprotect
-11 munmap
-12 brk
-13 rt_sigaction
-14 rt_sigprocmask
-15 rt_sigreturn
-16 ioctl
-17 pread64
-18 pwrite64
-19 readv
-20 writev
-21 access
-22 pipe
-23 select
-24 sched_yield
-25 mremap
-26 msync
-27 mincore
-28 madvise
-29 shmget
-30 shmat
-31 shmctl
-32 dup
-33 dup2
-34 pause
-35 nanosleep
-36 getitimer
-37 alarm
-38 setitimer
-39 getpid
-40 sendfile
-41 socket
-42 connect
-43 accept
-44 sendto
-45 recvfrom
-46 sendmsg
-47 recvmsg
-48 shutdown
-49 bind
-50 listen
-51 getsockname
-52 getpeername
-53 socketpair
-54 setsockopt
-55 getsockopt
-56 clone
-57 fork
-58 vfork
-59 execve
-60 exit
-61 wait4
-62 kill
-63 uname
-64 semget
-65 semop
-66 semctl
-67 shmdt
-68 msgget
-69 msgsnd
-70 msgrcv
-71 msgctl
-72 fcntl
-73 flock
-74 fsync
-75 fdatasync
-76 truncate
-77 ftruncate
-78 getdents
-79 getcwd
-80 chdir
-81 fchdir
-82 rename
-83 mkdir
-84 rmdir
-85 creat
-86 link
-87 unlink
-88 symlink
-89 readlink
-90 chmod
-91 fchmod
-92 chown
-93 fchown
-94 lchown
-95 umask
-96 gettimeofday
-97 getrlimit
-98 getrusage
-99 sysinfo
-100 times
-101 ptrace
-102 getuid
-103 syslog
-104 getgid
-105 setuid
-106 setgid
-107 geteuid
-108 getegid
-109 setpgid
-110 getppid
-111 getpgrp
-112 setsid
-113 setreuid
-114 setregid
-115 getgroups
-116 setgroups
-117 setresuid
-118 getresuid
-119 setresgid
-120 getresgid
-121 getpgid
-122 setfsuid
-123 setfsgid
-124 getsid
-125 capget
-126 capset
-127 rt_sigpending
-128 rt_sigtimedwait
-129 rt_sigqueueinfo
-130 rt_sigsuspend
-131 sigaltstack
-132 utime
-133 mknod
-134 uselib
-135 personality
-136 ustat
-137 statfs
-138 fstatfs
-139 sysfs
-140 getpriority
-141 setpriority
-142 sched_setparam
-143 sched_getparam
-144 sched_setscheduler
-145 sched_getscheduler
-146 sched_get_priority_max
-147 sched_get_priority_min
-148 sched_rr_get_interval
-149 mlock
-150 munlock
-151 mlockall
-152 munlockall
-153 vhangup
-154 modify_ldt
-155 pivot_root
-156 _sysctl
-157 prctl
-158 arch_prctl
-159 adjtimex
-160 setrlimit
-161 chroot
-162 sync
-163 acct
-164 settimeofday
-165 mount
-166 umount2
-167 swapon
-168 swapoff
-169 reboot
-170 sethostname
-171 setdomainname
-172 iopl
-173 ioperm
-174 create_module
-175 init_module
-176 delete_module
-177 get_kernel_syms
-178 query_module
-179 quotactl
-180 nfsservctl
-181 getpmsg
-182 putpmsg
-183 afs_syscall
-184 tuxcall
-185 security
-186 gettid
-187 readahead
-188 setxattr
-189 lsetxattr
-190 fsetxattr
-191 getxattr
-192 lgetxattr
-193 fgetxattr
-194 listxattr
-195 llistxattr
-196 flistxattr
-197 removexattr
-198 lremovexattr
-199 fremovexattr
-200 tkill
-201 time
-202 futex
-203 sched_setaffinity
-204 sched_getaffinity
-205 set_thread_area
-206 io_setup
-207 io_destroy
-208 io_getevents
-209 io_submit
-210 io_cancel
-211 get_thread_area
-212 lookup_dcookie
-213 epoll_create
-214 epoll_ctl_old
-215 epoll_wait_old
-216 remap_file_pages
-217 getdents64
-218 set_tid_address
-219 restart_syscall
-220 semtimedop
-221 fadvise64
-222 timer_create
-223 timer_settime
-224 timer_gettime
-225 timer_getoverrun
-226 timer_delete
-227 clock_settime
-228 clock_gettime
-229 clock_getres
-230 clock_nanosleep
-231 exit_group
-232 epoll_wait
-233 epoll_ctl
-234 tgkill
-235 utimes
-236 vserver
-237 mbind
-238 set_mempolicy
-239 get_mempolicy
-240 mq_open
-241 mq_unlink
-242 mq_timedsend
-243 mq_timedreceive
-244 mq_notify
-245 mq_getsetattr
-246 kexec_load
-247 waitid
-248 add_key
-249 request_key
-250 keyctl
-251 ioprio_set
-252 ioprio_get
-253 inotify_init
-254 inotify_add_watch
-255 inotify_rm_watch
-256 migrate_pages
-257 openat
-258 mkdirat
-259 mknodat
-260 fchownat
-261 futimesat
-262 newfstatat
-263 unlinkat
-264 renameat
-265 linkat
-266 symlinkat
-267 readlinkat
-268 fchmodat
-269 faccessat
-270 pselect6
-271 ppoll
-272 unshare
-273 set_robust_list
-274 get_robust_list
-275 splice
-276 tee
-277 sync_file_range
-278 vmsplice
-279 move_pages
-280 utimensat
-281 epoll_pwait
-282 signalfd
-283 timerfd_create
-284 eventfd
-285 fallocate
-286 timerfd_settime
-287 timerfd_gettime
-288 accept4
-289 signalfd4
-290 eventfd2
-291 epoll_create1
-292 dup3
-293 pipe2
-294 inotify_init1
-295 preadv
-296 pwritev
-297 rt_tgsigqueueinfo
-298 perf_event_open
-299 recvmmsg
-300 fanotify_init
-301 fanotify_mark
-302 prlimit64
-303 name_to_handle_at
-304 open_by_handle_at
-305 clock_adjtime
-306 syncfs
-307 sendmmsg
-308 setns
-309 getcpu
-310 process_vm_readv
-311 process_vm_writev
-312 kcmp
-313 finit_module
-314 sched_setattr
-315 sched_getattr
-316 renameat2
-317 seccomp
-318 getrandom
-319 memfd_create
-320 kexec_file_load
-321 bpf
-322 execveat
-323 userfaultfd
-324 membarrier
-325 mlock2
-326 copy_file_range
-327 preadv2
-328 pwritev2
-329 pkey_mprotect
-330 pkey_alloc
-331 pkey_free
-332 statx
-333 io_pgetevents
-334 rseq
-512 rt_sigaction
-513 rt_sigreturn
-514 ioctl
-515 readv
-516 writev
-517 recvfrom
-518 sendmsg
-519 recvmsg
-520 execve
-521 ptrace
-522 rt_sigpending
-523 rt_sigtimedwait
-524 rt_sigqueueinfo
-525 sigaltstack
-526 timer_create
-527 mq_notify
-528 kexec_load
-529 waitid
-530 set_robust_list
-531 get_robust_list
-532 vmsplice
-533 move_pages
-534 preadv
-535 pwritev
-536 rt_tgsigqueueinfo
-537 recvmmsg
-538 sendmmsg
-539 process_vm_readv
-540 process_vm_writev
-541 setsockopt
-542 getsockopt
-543 io_setup
-544 io_submit
-545 execveat
-546 preadv2
-547 pwritev2
+0	io_setup	linux-4.19.16-kjudge/fs/aio.c:1287	linux-4.19.16-kjudge/fs/aio.c:1318
+1	io_destroy	linux-4.19.16-kjudge/fs/aio.c:1356
+2	io_submit	linux-4.19.16-kjudge/fs/aio.c:1890	linux-4.19.16-kjudge/fs/aio.c:1930
+3	io_cancel	linux-4.19.16-kjudge/fs/aio.c:1998
+4	io_getevents	linux-4.19.16-kjudge/fs/aio.c:2068	linux-4.19.16-kjudge/fs/aio.c:2137
+5	setxattr	linux-4.19.16-kjudge/fs/xattr.c:480
+6	lsetxattr	linux-4.19.16-kjudge/fs/xattr.c:487
+7	fsetxattr	linux-4.19.16-kjudge/fs/xattr.c:494
+8	getxattr	linux-4.19.16-kjudge/fs/xattr.c:574
+9	lgetxattr	linux-4.19.16-kjudge/fs/xattr.c:580
+10	fgetxattr	linux-4.19.16-kjudge/fs/xattr.c:586
+11	listxattr	linux-4.19.16-kjudge/fs/xattr.c:650
+12	llistxattr	linux-4.19.16-kjudge/fs/xattr.c:656
+13	flistxattr	linux-4.19.16-kjudge/fs/xattr.c:662
+14	removexattr	linux-4.19.16-kjudge/fs/xattr.c:715
+15	lremovexattr	linux-4.19.16-kjudge/fs/xattr.c:721
+16	fremovexattr	linux-4.19.16-kjudge/fs/xattr.c:727
+17	getcwd	linux-4.19.16-kjudge/fs/d_path.c:424
+18	lookup_dcookie	linux-4.19.16-kjudge/fs/dcookies.c:206	linux-4.19.16-kjudge/fs/dcookies.c:212
+19	eventfd2	linux-4.19.16-kjudge/fs/eventfd.c:412
+20	epoll_create1	linux-4.19.16-kjudge/fs/eventpoll.c:1989
+21	epoll_ctl	linux-4.19.16-kjudge/fs/eventpoll.c:2007
+22	epoll_pwait	
+23	dup	linux-4.19.16-kjudge/fs/file.c:908	linux-4.19.16-kjudge/fs/file.c:913	linux-4.19.16-kjudge/fs/file.c:943
+24	dup3	linux-4.19.16-kjudge/fs/file.c:908
+26	inotify_init1	linux-4.19.16-kjudge/fs/notify/inotify/inotify_user.c:686
+27	inotify_add_watch	linux-4.19.16-kjudge/fs/notify/inotify/inotify_user.c:696
+28	inotify_rm_watch	linux-4.19.16-kjudge/fs/notify/inotify/inotify_user.c:757
+29	ioctl	linux-4.19.16-kjudge/fs/compat_ioctl.c:1365	linux-4.19.16-kjudge/fs/ioctl.c:710
+30	ioprio_set	linux-4.19.16-kjudge/block/ioprio.c:93
+31	ioprio_get	linux-4.19.16-kjudge/block/ioprio.c:185
+32	flock	linux-4.19.16-kjudge/fs/locks.c:1985
+33	mknodat	linux-4.19.16-kjudge/fs/namei.c:3786
+34	mkdirat	linux-4.19.16-kjudge/fs/namei.c:3848
+35	unlinkat	linux-4.19.16-kjudge/fs/namei.c:4096
+36	symlinkat	linux-4.19.16-kjudge/fs/namei.c:4164
+37	linkat	linux-4.19.16-kjudge/fs/namei.c:4329
+38	renameat	linux-4.19.16-kjudge/fs/namei.c:4658	linux-4.19.16-kjudge/fs/namei.c:4664
+39	umount2	
+40	mount	linux-4.19.16-kjudge/fs/namespace.c:3026	linux-4.19.16-kjudge/fs/compat.c:92
+41	pivot_root	linux-4.19.16-kjudge/fs/namespace.c:3082
+42	nfsservctl	
+47	fallocate	linux-4.19.16-kjudge/fs/open.c:337
+48	faccessat	linux-4.19.16-kjudge/fs/open.c:423
+49	chdir	linux-4.19.16-kjudge/fs/open.c:459
+50	fchdir	linux-4.19.16-kjudge/fs/open.c:464
+51	chroot	linux-4.19.16-kjudge/fs/open.c:519
+52	fchmod	linux-4.19.16-kjudge/fs/open.c:566	linux-4.19.16-kjudge/fs/open.c:589
+53	fchmodat	linux-4.19.16-kjudge/fs/open.c:589
+54	fchownat	linux-4.19.16-kjudge/fs/open.c:674
+55	fchown	linux-4.19.16-kjudge/kernel/uid16.c:33	linux-4.19.16-kjudge/fs/open.c:674	linux-4.19.16-kjudge/fs/open.c:711
+56	openat	linux-4.19.16-kjudge/fs/open.c:1084	linux-4.19.16-kjudge/fs/open.c:1107
+57	close	linux-4.19.16-kjudge/fs/open.c:1157
+58	vhangup	linux-4.19.16-kjudge/fs/open.c:1175
+59	pipe2	linux-4.19.16-kjudge/fs/pipe.c:845
+60	quotactl	linux-4.19.16-kjudge/fs/quota/quota.c:889	linux-4.19.16-kjudge/fs/quota/compat.c:44
+61	getdents64	linux-4.19.16-kjudge/fs/readdir.c:330
+63	read	linux-4.19.16-kjudge/fs/stat.c:418	linux-4.19.16-kjudge/fs/stat.c:424	linux-4.19.16-kjudge/fs/read_write.c:586	linux-4.19.16-kjudge/fs/read_write.c:1103	linux-4.19.16-kjudge/fs/read_write.c:1195	linux-4.19.16-kjudge/arch/sparc/kernel/sys_sparc32.c:203	linux-4.19.16-kjudge/mm/readahead.c:605
+64	write	linux-4.19.16-kjudge/fs/read_write.c:607	linux-4.19.16-kjudge/fs/read_write.c:1109	linux-4.19.16-kjudge/fs/read_write.c:1301
+65	readv	linux-4.19.16-kjudge/fs/read_write.c:1103	linux-4.19.16-kjudge/fs/read_write.c:1195
+66	writev	linux-4.19.16-kjudge/fs/read_write.c:1109	linux-4.19.16-kjudge/fs/read_write.c:1301
+67	pread64	linux-4.19.16-kjudge/fs/read_write.c:633	linux-4.19.16-kjudge/arch/sparc/kernel/sys_sparc32.c:191
+68	pwrite64	linux-4.19.16-kjudge/fs/read_write.c:659	linux-4.19.16-kjudge/arch/sparc/kernel/sys_sparc32.c:197
+69	preadv	linux-4.19.16-kjudge/fs/read_write.c:1115	linux-4.19.16-kjudge/fs/read_write.c:1222	linux-4.19.16-kjudge/fs/read_write.c:1230	linux-4.19.16-kjudge/fs/read_write.c:1240
+70	pwritev	linux-4.19.16-kjudge/fs/read_write.c:1135	linux-4.19.16-kjudge/fs/read_write.c:1328	linux-4.19.16-kjudge/fs/read_write.c:1336	linux-4.19.16-kjudge/fs/read_write.c:1346
+72	pselect6	
+73	ppoll	linux-4.19.16-kjudge/fs/select.c:1047	linux-4.19.16-kjudge/fs/select.c:1375
+74	signalfd4	linux-4.19.16-kjudge/fs/signalfd.c:311	linux-4.19.16-kjudge/fs/signalfd.c:347
+75	vmsplice	linux-4.19.16-kjudge/fs/splice.c:1343	linux-4.19.16-kjudge/fs/splice.c:1369
+76	splice	
+77	tee	linux-4.19.16-kjudge/fs/splice.c:1731
+78	readlinkat	linux-4.19.16-kjudge/fs/stat.c:418
+81	sync	linux-4.19.16-kjudge/fs/sync.c:122	linux-4.19.16-kjudge/fs/sync.c:160	linux-4.19.16-kjudge/fs/sync.c:363	linux-4.19.16-kjudge/fs/sync.c:371
+82	fsync	linux-4.19.16-kjudge/fs/sync.c:227
+83	fdatasync	linux-4.19.16-kjudge/fs/sync.c:232
+84	sync_file_range2	linux-4.19.16-kjudge/fs/sync.c:371
+84	sync_file_range	linux-4.19.16-kjudge/fs/sync.c:363	linux-4.19.16-kjudge/fs/sync.c:371
+85	timerfd_create	linux-4.19.16-kjudge/fs/timerfd.c:387
+86	timerfd_settime	linux-4.19.16-kjudge/fs/timerfd.c:535	linux-4.19.16-kjudge/fs/timerfd.c:563
+87	timerfd_gettime	linux-4.19.16-kjudge/fs/timerfd.c:553	linux-4.19.16-kjudge/fs/timerfd.c:580
+88	utimensat	linux-4.19.16-kjudge/fs/utimes.c:168	linux-4.19.16-kjudge/fs/utimes.c:248
+89	acct	linux-4.19.16-kjudge/kernel/acct.c:273
+90	capget	linux-4.19.16-kjudge/kernel/capability.c:150
+91	capset	linux-4.19.16-kjudge/kernel/capability.c:224
+92	personality	linux-4.19.16-kjudge/kernel/exec_domain.c:38
+93	exit	linux-4.19.16-kjudge/kernel/exit.c:939	linux-4.19.16-kjudge/kernel/exit.c:981
+94	exit_group	linux-4.19.16-kjudge/kernel/exit.c:981
+95	waitid	linux-4.19.16-kjudge/kernel/exit.c:1621	linux-4.19.16-kjudge/kernel/exit.c:1740
+96	set_tid_address	linux-4.19.16-kjudge/kernel/fork.c:1559
+97	unshare	linux-4.19.16-kjudge/kernel/fork.c:2570
+98	futex	
+99	set_robust_list	linux-4.19.16-kjudge/kernel/futex_compat.c:121	linux-4.19.16-kjudge/kernel/futex.c:3355
+100	get_robust_list	linux-4.19.16-kjudge/kernel/futex_compat.c:136	linux-4.19.16-kjudge/kernel/futex.c:3377
+101	nanosleep	linux-4.19.16-kjudge/kernel/time/hrtimer.c:1763	linux-4.19.16-kjudge/kernel/time/hrtimer.c:1783
+102	getitimer	linux-4.19.16-kjudge/kernel/time/itimer.c:107	linux-4.19.16-kjudge/kernel/time/itimer.c:122
+103	setitimer	linux-4.19.16-kjudge/kernel/time/itimer.c:293	linux-4.19.16-kjudge/kernel/time/itimer.c:319
+104	kexec_load	linux-4.19.16-kjudge/kernel/kexec.c:226	linux-4.19.16-kjudge/kernel/kexec.c:259
+105	init_module	linux-4.19.16-kjudge/kernel/module.c:3840
+106	delete_module	linux-4.19.16-kjudge/kernel/module.c:960
+107	timer_create	linux-4.19.16-kjudge/kernel/time/posix-timers.c:572	linux-4.19.16-kjudge/kernel/time/posix-timers.c:587
+108	timer_gettime	linux-4.19.16-kjudge/kernel/time/posix-timers.c:739	linux-4.19.16-kjudge/kernel/time/posix-timers.c:754
+109	timer_getoverrun	linux-4.19.16-kjudge/kernel/time/posix-timers.c:778
+110	timer_settime	linux-4.19.16-kjudge/kernel/time/posix-timers.c:904	linux-4.19.16-kjudge/kernel/time/posix-timers.c:927
+111	timer_delete	linux-4.19.16-kjudge/kernel/time/posix-timers.c:970
+112	clock_settime	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1038	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1114	linux-4.19.16-kjudge/kernel/time/posix-stubs.c:61	linux-4.19.16-kjudge/kernel/time/posix-stubs.c:164
+113	clock_gettime	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1053	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1129	linux-4.19.16-kjudge/kernel/time/posix-stubs.c:92	linux-4.19.16-kjudge/kernel/time/posix-stubs.c:177
+114	clock_getres	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1094	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1179	linux-4.19.16-kjudge/kernel/time/posix-stubs.c:107	linux-4.19.16-kjudge/kernel/time/posix-stubs.c:192
+115	clock_nanosleep	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1209	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1236	linux-4.19.16-kjudge/kernel/time/posix-stubs.c:126	linux-4.19.16-kjudge/kernel/time/posix-stubs.c:212
+116	syslog	linux-4.19.16-kjudge/kernel/printk/printk.c:1556
+117	ptrace	linux-4.19.16-kjudge/kernel/ptrace.c:1110	linux-4.19.16-kjudge/kernel/ptrace.c:1258
+118	sched_setparam	linux-4.19.16-kjudge/kernel/sched/core.c:4538
+119	sched_setscheduler	linux-4.19.16-kjudge/kernel/sched/core.c:4523
+120	sched_getscheduler	linux-4.19.16-kjudge/kernel/sched/core.c:4583
+121	sched_getparam	linux-4.19.16-kjudge/kernel/sched/core.c:4612
+122	sched_setaffinity	linux-4.19.16-kjudge/kernel/sched/core.c:4841	linux-4.19.16-kjudge/kernel/compat.c:279
+123	sched_getaffinity	linux-4.19.16-kjudge/kernel/sched/core.c:4893	linux-4.19.16-kjudge/kernel/compat.c:299
+124	sched_yield	linux-4.19.16-kjudge/kernel/sched/core.c:4952
+125	sched_get_priority_max	linux-4.19.16-kjudge/kernel/sched/core.c:5152
+126	sched_get_priority_min	linux-4.19.16-kjudge/kernel/sched/core.c:5179
+127	sched_rr_get_interval	linux-4.19.16-kjudge/kernel/sched/core.c:5244	linux-4.19.16-kjudge/kernel/sched/core.c:5257
+128	restart_syscall	linux-4.19.16-kjudge/kernel/signal.c:2654
+129	kill	linux-4.19.16-kjudge/kernel/signal.c:3210
+130	tkill	linux-4.19.16-kjudge/kernel/signal.c:3294
+131	tgkill	linux-4.19.16-kjudge/kernel/signal.c:3278
+132	sigaltstack	linux-4.19.16-kjudge/kernel/signal.c:3505	linux-4.19.16-kjudge/kernel/signal.c:3573
+133	rt_sigsuspend	linux-4.19.16-kjudge/kernel/signal.c:3919	linux-4.19.16-kjudge/kernel/signal.c:3933
+134	rt_sigaction	linux-4.19.16-kjudge/kernel/signal.c:3696	linux-4.19.16-kjudge/kernel/signal.c:3721	linux-4.19.16-kjudge/arch/sparc/kernel/sys_sparc_32.c:169	linux-4.19.16-kjudge/arch/sparc/kernel/sys_sparc32.c:149	linux-4.19.16-kjudge/arch/sparc/kernel/sys_sparc_64.c:618	linux-4.19.16-kjudge/arch/alpha/kernel/signal.c:90
+135	rt_sigprocmask	linux-4.19.16-kjudge/kernel/signal.c:2748	linux-4.19.16-kjudge/kernel/signal.c:2779
+136	rt_sigpending	linux-4.19.16-kjudge/kernel/signal.c:2820	linux-4.19.16-kjudge/kernel/signal.c:2836
+137	rt_sigtimedwait	linux-4.19.16-kjudge/kernel/signal.c:3142	linux-4.19.16-kjudge/kernel/signal.c:3174
+138	rt_sigqueueinfo	linux-4.19.16-kjudge/kernel/signal.c:3324	linux-4.19.16-kjudge/kernel/signal.c:3334
+139	rt_sigreturn	linux-4.19.16-kjudge/arch/powerpc/kernel/signal_32.c:1154	linux-4.19.16-kjudge/arch/powerpc/kernel/signal_32.c:1156	linux-4.19.16-kjudge/arch/powerpc/kernel/signal_64.c:715	linux-4.19.16-kjudge/arch/riscv/kernel/signal.c:82	linux-4.19.16-kjudge/arch/x86/kernel/signal.c:637	linux-4.19.16-kjudge/arch/arc/kernel/signal.c:154	linux-4.19.16-kjudge/arch/s390/kernel/signal.c:239	linux-4.19.16-kjudge/arch/s390/kernel/compat_signal.c:201	linux-4.19.16-kjudge/arch/arm64/kernel/signal32.c:319	linux-4.19.16-kjudge/arch/arm64/kernel/signal.c:542
+140	setpriority	linux-4.19.16-kjudge/kernel/sys.c:193
+141	getpriority	linux-4.19.16-kjudge/kernel/sys.c:263
+142	reboot	linux-4.19.16-kjudge/kernel/reboot.c:307
+143	setregid	linux-4.19.16-kjudge/kernel/uid16.c:38	linux-4.19.16-kjudge/kernel/sys.c:399
+144	setgid	linux-4.19.16-kjudge/kernel/uid16.c:43	linux-4.19.16-kjudge/kernel/sys.c:441
+145	setreuid	linux-4.19.16-kjudge/kernel/uid16.c:48	linux-4.19.16-kjudge/kernel/sys.c:550
+146	setuid	linux-4.19.16-kjudge/kernel/uid16.c:53	linux-4.19.16-kjudge/kernel/sys.c:608
+147	setresuid	linux-4.19.16-kjudge/kernel/uid16.c:58	linux-4.19.16-kjudge/kernel/sys.c:683
+148	getresuid	linux-4.19.16-kjudge/kernel/uid16.c:64	linux-4.19.16-kjudge/kernel/sys.c:688
+149	setresgid	linux-4.19.16-kjudge/kernel/uid16.c:81	linux-4.19.16-kjudge/kernel/sys.c:762
+150	getresgid	linux-4.19.16-kjudge/kernel/uid16.c:87	linux-4.19.16-kjudge/kernel/sys.c:767
+151	setfsuid	linux-4.19.16-kjudge/kernel/uid16.c:104	linux-4.19.16-kjudge/kernel/sys.c:830
+152	setfsgid	linux-4.19.16-kjudge/kernel/uid16.c:109	linux-4.19.16-kjudge/kernel/sys.c:873
+153	times	linux-4.19.16-kjudge/kernel/sys.c:953	linux-4.19.16-kjudge/kernel/sys.c:972
+154	setpgid	linux-4.19.16-kjudge/kernel/sys.c:1003
+155	getpgid	linux-4.19.16-kjudge/kernel/sys.c:1102
+156	getsid	linux-4.19.16-kjudge/kernel/sys.c:1116
+157	setsid	linux-4.19.16-kjudge/kernel/sys.c:1188
+158	getgroups	linux-4.19.16-kjudge/kernel/uid16.c:154	linux-4.19.16-kjudge/kernel/groups.c:153
+159	setgroups	linux-4.19.16-kjudge/kernel/uid16.c:177	linux-4.19.16-kjudge/kernel/groups.c:190
+160	uname	linux-4.19.16-kjudge/kernel/sys.c:1256
+161	sethostname	linux-4.19.16-kjudge/kernel/sys.c:1301
+162	setdomainname	linux-4.19.16-kjudge/kernel/sys.c:1354
+163	getrlimit	linux-4.19.16-kjudge/kernel/sys.c:1379	linux-4.19.16-kjudge/kernel/sys.c:1413
+164	setrlimit	linux-4.19.16-kjudge/kernel/sys.c:1393	linux-4.19.16-kjudge/kernel/sys.c:1673
+165	getrusage	linux-4.19.16-kjudge/kernel/sys.c:1805	linux-4.19.16-kjudge/kernel/sys.c:1818
+166	umask	linux-4.19.16-kjudge/kernel/sys.c:1831
+167	prctl	linux-4.19.16-kjudge/kernel/sys.c:2281
+168	getcpu	linux-4.19.16-kjudge/kernel/sys.c:2517
+169	gettimeofday	linux-4.19.16-kjudge/kernel/time/time.c:143	linux-4.19.16-kjudge/kernel/time/time.c:226
+170	settimeofday	linux-4.19.16-kjudge/kernel/time/time.c:200	linux-4.19.16-kjudge/kernel/time/time.c:244
+171	adjtimex	linux-4.19.16-kjudge/kernel/time/time.c:266	linux-4.19.16-kjudge/kernel/time/time.c:283
+172	getpid	linux-4.19.16-kjudge/kernel/sys.c:888
+173	getppid	linux-4.19.16-kjudge/Documentation/static-keys.txt:217	linux-4.19.16-kjudge/kernel/sys.c:905
+174	getuid	linux-4.19.16-kjudge/kernel/uid16.c:203	linux-4.19.16-kjudge/kernel/sys.c:916
+175	geteuid	linux-4.19.16-kjudge/kernel/uid16.c:208	linux-4.19.16-kjudge/kernel/sys.c:922
+176	getgid	linux-4.19.16-kjudge/kernel/uid16.c:213	linux-4.19.16-kjudge/kernel/sys.c:928
+177	getegid	linux-4.19.16-kjudge/kernel/uid16.c:218	linux-4.19.16-kjudge/kernel/sys.c:934
+178	gettid	linux-4.19.16-kjudge/kernel/sys.c:894
+179	sysinfo	linux-4.19.16-kjudge/kernel/sys.c:2596	linux-4.19.16-kjudge/kernel/sys.c:2626
+180	mq_open	linux-4.19.16-kjudge/ipc/mqueue.c:793	linux-4.19.16-kjudge/ipc/mqueue.c:1410
+181	mq_unlink	linux-4.19.16-kjudge/ipc/mqueue.c:803
+182	mq_timedsend	linux-4.19.16-kjudge/ipc/mqueue.c:1129	linux-4.19.16-kjudge/ipc/mqueue.c:1474
+183	mq_timedreceive	linux-4.19.16-kjudge/ipc/mqueue.c:1143	linux-4.19.16-kjudge/ipc/mqueue.c:1489
+184	mq_notify	linux-4.19.16-kjudge/ipc/mqueue.c:1288	linux-4.19.16-kjudge/ipc/mqueue.c:1423
+185	mq_getsetattr	linux-4.19.16-kjudge/ipc/mqueue.c:1344	linux-4.19.16-kjudge/ipc/mqueue.c:1437
+186	msgget	linux-4.19.16-kjudge/ipc/msg.c:293
+187	msgctl	linux-4.19.16-kjudge/ipc/msg.c:614	linux-4.19.16-kjudge/ipc/msg.c:735
+188	msgrcv	linux-4.19.16-kjudge/ipc/msg.c:1205	linux-4.19.16-kjudge/ipc/msg.c:1233
+189	msgsnd	linux-4.19.16-kjudge/ipc/msg.c:914	linux-4.19.16-kjudge/ipc/msg.c:938
+190	semget	linux-4.19.16-kjudge/ipc/sem.c:607
+191	semctl	linux-4.19.16-kjudge/ipc/sem.c:1692	linux-4.19.16-kjudge/ipc/sem.c:1793
+192	semtimedop	linux-4.19.16-kjudge/ipc/sem.c:2208	linux-4.19.16-kjudge/ipc/sem.c:2228
+193	semop	linux-4.19.16-kjudge/ipc/sem.c:2236
+194	shmget	linux-4.19.16-kjudge/ipc/shm.c:745
+195	shmctl	linux-4.19.16-kjudge/ipc/shm.c:1195	linux-4.19.16-kjudge/ipc/shm.c:1379
+196	shmat	linux-4.19.16-kjudge/ipc/shm.c:1565	linux-4.19.16-kjudge/ipc/shm.c:1583
+197	shmdt	linux-4.19.16-kjudge/ipc/shm.c:1707
+198	socket	linux-4.19.16-kjudge/net/socket.c:1354	linux-4.19.16-kjudge/net/socket.c:1455	linux-4.19.16-kjudge/net/socket.c:2507	linux-4.19.16-kjudge/net/compat.c:845
+199	socketpair	linux-4.19.16-kjudge/net/socket.c:1455
+200	bind	linux-4.19.16-kjudge/net/socket.c:1492
+201	listen	linux-4.19.16-kjudge/net/socket.c:1524
+202	accept	linux-4.19.16-kjudge/net/socket.c:1622	linux-4.19.16-kjudge/net/socket.c:1628
+203	connect	linux-4.19.16-kjudge/net/socket.c:1672
+204	getsockname	linux-4.19.16-kjudge/net/socket.c:1710
+205	getpeername	linux-4.19.16-kjudge/net/socket.c:1746
+206	sendto	
+207	recvfrom	
+208	setsockopt	linux-4.19.16-kjudge/net/socket.c:1910	linux-4.19.16-kjudge/net/compat.c:414
+209	getsockopt	linux-4.19.16-kjudge/net/socket.c:1947	linux-4.19.16-kjudge/net/compat.c:543
+210	shutdown	linux-4.19.16-kjudge/net/socket.c:1972
+211	sendmsg	linux-4.19.16-kjudge/net/socket.c:2161	linux-4.19.16-kjudge/net/compat.c:761
+212	recvmsg	linux-4.19.16-kjudge/net/socket.c:2334	linux-4.19.16-kjudge/net/compat.c:789
+213	readahead	linux-4.19.16-kjudge/arch/sparc/kernel/sys_sparc32.c:203	linux-4.19.16-kjudge/mm/readahead.c:605
+214	brk	linux-4.19.16-kjudge/mm/mmap.c:191	linux-4.19.16-kjudge/mm/nommu.c:483
+215	munmap	linux-4.19.16-kjudge/mm/mmap.c:2848	linux-4.19.16-kjudge/mm/nommu.c:1624
+216	mremap	linux-4.19.16-kjudge/mm/mremap.c:515	linux-4.19.16-kjudge/mm/nommu.c:1700
+217	add_key	linux-4.19.16-kjudge/security/keys/keyctl.c:62
+218	request_key	linux-4.19.16-kjudge/security/keys/keyctl.c:158
+219	keyctl	linux-4.19.16-kjudge/security/keys/keyctl.c:1637	linux-4.19.16-kjudge/security/keys/compat.c:59
+220	clone	linux-4.19.16-kjudge/kernel/fork.c:2266	linux-4.19.16-kjudge/kernel/fork.c:2271	linux-4.19.16-kjudge/kernel/fork.c:2282
+221	execve	linux-4.19.16-kjudge/fs/exec.c:1966	linux-4.19.16-kjudge/fs/exec.c:1974	linux-4.19.16-kjudge/fs/exec.c:1988	linux-4.19.16-kjudge/fs/exec.c:1995
+224	swapon	linux-4.19.16-kjudge/mm/swapfile.c:3096
+225	swapoff	linux-4.19.16-kjudge/mm/swapfile.c:2517
+226	mprotect	linux-4.19.16-kjudge/mm/mprotect.c:577
+227	msync	linux-4.19.16-kjudge/mm/msync.c:32
+228	mlock	linux-4.19.16-kjudge/mm/mlock.c:716	linux-4.19.16-kjudge/mm/mlock.c:721	linux-4.19.16-kjudge/mm/mlock.c:795
+229	munlock	linux-4.19.16-kjudge/mm/mlock.c:734	linux-4.19.16-kjudge/mm/mlock.c:823
+230	mlockall	linux-4.19.16-kjudge/mm/mlock.c:795
+231	munlockall	linux-4.19.16-kjudge/mm/mlock.c:823
+232	mincore	linux-4.19.16-kjudge/mm/mincore.c:224
+233	madvise	linux-4.19.16-kjudge/mm/madvise.c:802
+234	remap_file_pages	linux-4.19.16-kjudge/mm/mmap.c:2858
+235	mbind	
+236	get_mempolicy	linux-4.19.16-kjudge/mm/mempolicy.c:1497	linux-4.19.16-kjudge/mm/mempolicy.c:1506
+237	set_mempolicy	linux-4.19.16-kjudge/mm/mempolicy.c:1363	linux-4.19.16-kjudge/mm/mempolicy.c:1536
+238	migrate_pages	linux-4.19.16-kjudge/mm/mempolicy.c:1461	linux-4.19.16-kjudge/mm/mempolicy.c:1579
+239	move_pages	
+240	rt_tgsigqueueinfo	linux-4.19.16-kjudge/kernel/signal.c:3365	linux-4.19.16-kjudge/kernel/signal.c:3377
+241	perf_event_open	linux-4.19.16-kjudge/kernel/events/core.c:10391
+242	accept4	linux-4.19.16-kjudge/net/socket.c:1622
+243	recvmmsg	linux-4.19.16-kjudge/net/socket.c:2480	linux-4.19.16-kjudge/net/compat.c:838
+244	arch_specific_syscall	
+260	wait4	linux-4.19.16-kjudge/kernel/exit.c:1698	linux-4.19.16-kjudge/kernel/exit.c:1725
+261	prlimit64	linux-4.19.16-kjudge/kernel/sys.c:1626
+262	fanotify_init	linux-4.19.16-kjudge/fs/notify/fanotify/fanotify_user.c:682
+263	fanotify_mark	linux-4.19.16-kjudge/fs/notify/fanotify/fanotify_user.c:907
+264	name_to_handle_at	linux-4.19.16-kjudge/fs/fhandle.c:93
+265	open_by_handle_at	linux-4.19.16-kjudge/fs/fhandle.c:256	linux-4.19.16-kjudge/fs/fhandle.c:274
+266	clock_adjtime	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1071	linux-4.19.16-kjudge/kernel/time/posix-timers.c:1151
+267	syncfs	linux-4.19.16-kjudge/fs/sync.c:160
+268	setns	linux-4.19.16-kjudge/kernel/nsproxy.c:237
+269	sendmmsg	linux-4.19.16-kjudge/net/socket.c:2237	linux-4.19.16-kjudge/net/compat.c:775
+270	process_vm_readv	
+271	process_vm_writev	
+272	kcmp	linux-4.19.16-kjudge/kernel/kcmp.c:152
+273	finit_module	linux-4.19.16-kjudge/kernel/module.c:3860
+274	sched_setattr	linux-4.19.16-kjudge/kernel/sched/core.c:4549
+275	sched_getattr	linux-4.19.16-kjudge/kernel/sched/core.c:4690
+276	renameat2	linux-4.19.16-kjudge/fs/namei.c:4658
+277	seccomp	linux-4.19.16-kjudge/kernel/seccomp.c:946
+278	getrandom	linux-4.19.16-kjudge/drivers/char/random.c:2041
+279	memfd_create	linux-4.19.16-kjudge/mm/memfd.c:266
+280	bpf	linux-4.19.16-kjudge/kernel/bpf/syscall.c:2348
+281	execveat	linux-4.19.16-kjudge/fs/exec.c:1974	linux-4.19.16-kjudge/fs/exec.c:1995
+282	userfaultfd	linux-4.19.16-kjudge/fs/userfaultfd.c:1912
+283	membarrier	linux-4.19.16-kjudge/kernel/sched/membarrier.c:283
+284	mlock2	linux-4.19.16-kjudge/mm/mlock.c:721
+285	copy_file_range	
+286	preadv2	
+287	pwritev2	
+288	pkey_mprotect	linux-4.19.16-kjudge/mm/mprotect.c:585
+289	pkey_alloc	linux-4.19.16-kjudge/mm/mprotect.c:591
+290	pkey_free	linux-4.19.16-kjudge/mm/mprotect.c:621
+291	statx	linux-4.19.16-kjudge/fs/stat.c:566
+292	io_pgetevents	
+293	rseq	linux-4.19.16-kjudge/kernel/rseq.c:308
+294	syscalls	
