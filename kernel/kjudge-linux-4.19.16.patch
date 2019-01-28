@@ -13,6 +13,85 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+diff -ruNp linux-4.19.16/fs/aio.c linux-4.19.16-kjudge/fs/aio.c
+--- linux-4.19.16/fs/aio.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/fs/aio.c	2019-01-28 20:38:29.173481882 +0300
+@@ -1290,6 +1290,8 @@ SYSCALL_DEFINE2(io_setup, unsigned, nr_e
+ 	unsigned long ctx;
+ 	long ret;
+ 
++	KJ_OMIT(0, io_setup);
++
+ 	ret = get_user(ctx, ctxp);
+ 	if (unlikely(ret))
+ 		goto out;
+@@ -1321,6 +1323,8 @@ COMPAT_SYSCALL_DEFINE2(io_setup, unsigne
+ 	unsigned long ctx;
+ 	long ret;
+ 
++	KJ_OMIT(0, io_setup);
++
+ 	ret = get_user(ctx, ctx32p);
+ 	if (unlikely(ret))
+ 		goto out;
+@@ -1355,7 +1359,11 @@ out:
+  */
+ SYSCALL_DEFINE1(io_destroy, aio_context_t, ctx)
+ {
+-	struct kioctx *ioctx = lookup_ioctx(ctx);
++	struct kioctx *ioctx;
++
++	KJ_OMIT(1, io_destroy);
++
++	ioctx = lookup_ioctx(ctx);
+ 	if (likely(NULL != ioctx)) {
+ 		struct ctx_rq_wait wait;
+ 		int ret;
+@@ -1895,6 +1903,8 @@ SYSCALL_DEFINE3(io_submit, aio_context_t
+ 	int i = 0;
+ 	struct blk_plug plug;
+ 
++	KJ_OMIT(2, io_submit);
++
+ 	if (unlikely(nr < 0))
+ 		return -EINVAL;
+ 
+@@ -1935,6 +1945,8 @@ COMPAT_SYSCALL_DEFINE3(io_submit, compat
+ 	int i = 0;
+ 	struct blk_plug plug;
+ 
++	KJ_OMIT(2, io_submit);
++
+ 	if (unlikely(nr < 0))
+ 		return -EINVAL;
+ 
+@@ -2003,6 +2015,8 @@ SYSCALL_DEFINE3(io_cancel, aio_context_t
+ 	int ret = -EINVAL;
+ 	u32 key;
+ 
++	KJ_OMIT(3, io_cancel);
++
+ 	if (unlikely(get_user(key, &iocb->aio_key)))
+ 		return -EFAULT;
+ 	if (unlikely(key != KIOCB_KEY))
+@@ -2074,6 +2088,8 @@ SYSCALL_DEFINE5(io_getevents, aio_contex
+ 	struct timespec64	ts;
+ 	int			ret;
+ 
++	KJ_OMIT(4, io_getevents);
++
+ 	if (timeout && unlikely(get_timespec64(&ts, timeout)))
+ 		return -EFAULT;
+ 
+@@ -2143,6 +2159,8 @@ COMPAT_SYSCALL_DEFINE5(io_getevents, com
+ 	struct timespec64 t;
+ 	int ret;
+ 
++	KJ_OMIT(4, io_getevents);
++
+ 	if (timeout && compat_get_timespec64(&t, timeout))
+ 		return -EFAULT;
+ 
 diff -ruNp linux-4.19.16/fs/exec.c linux-4.19.16-kjudge/fs/exec.c
 --- linux-4.19.16/fs/exec.c	2019-01-17 00:04:38.000000000 +0300
 +++ linux-4.19.16-kjudge/fs/exec.c	2019-01-24 23:16:48.491099356 +0300
@@ -114,8 +193,8 @@ diff -ruNp linux-4.19.16/include/linux/sched/signal.h linux-4.19.16-kjudge/inclu
  	/*
 diff -ruNp linux-4.19.16/include/linux/sched.h linux-4.19.16-kjudge/include/linux/sched.h
 --- linux-4.19.16/include/linux/sched.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/linux/sched.h	2019-01-24 23:16:49.939155135 +0300
-@@ -55,6 +55,61 @@ struct signal_struct;
++++ linux-4.19.16-kjudge/include/linux/sched.h	2019-01-27 14:43:59.499562904 +0300
+@@ -55,6 +55,63 @@ struct signal_struct;
  struct task_delay_info;
  struct task_group;
  
@@ -141,34 +220,36 @@ diff -ruNp linux-4.19.16/include/linux/sched.h linux-4.19.16-kjudge/include/linu
 +#define KJ_WAS_TIMELIMIT_STAT			0x080000
 +#define KJ_WAS_SV_STAT					0x100000
 +
++// (!) name is not string
 +#define KJ_SET_SV_ERROR(id, name) do { \
 +	current->kj_flags |= KJ_WAS_SV; \
-+	current->kj_flags &= ((1 << 22) - 1); \
 +	current->kj_violation_id = id; \
 +} while (0);
 +
++#define KJ_ISOLATED() (current->kj_flags && KJ_SAFEMODE)
++
 +#define KJ_FORBID(id, name) do { \
-+	if (current->kj_flags & KJ_SAFEMODE) { \
++	if (KJ_ISOLATED()) { \
 +		KJ_SET_SV_ERROR(id, name); \
 +		return -EPERM; \
 +	} \
 +} while (0);
 +
 +#define KJ_FORBID_IF(cond, id, name) do { \
-+	if ((current->kj_flags & KJ_SAFEMODE) && (cond)) { \
++	if (KJ_ISOLATED() && (cond)) { \
 +		KJ_SET_SV_ERROR(id, name); \
 +		return -EPERM; \
 +	} \
 +} while (0); 
 +
 +#define KJ_OMIT(id, name) do { \
-+	if (current->kj_flags & KJ_SAFEMODE) { \
++	if (KJ_ISOLATED()) { \
 +		return -EPERM; \
 +	} \
 +} while (0);
 +
 +#define KJ_OMIT_IF(cond, id, name) do { \
-+	if ((current->kj_flags & KJ_SAFEMODE) && (cond)) { \
++	if (KJ_ISOLATED() && (cond)) { \
 +		return -EPERM; \
 +	} \
 +} while (0);
@@ -177,7 +258,7 @@ diff -ruNp linux-4.19.16/include/linux/sched.h linux-4.19.16-kjudge/include/linu
  /*
   * Task state bitmask. NOTE! These bits are also
   * encoded in fs/proc/array.c: get_task_state().
-@@ -1193,6 +1248,8 @@ struct task_struct {
+@@ -1193,6 +1250,8 @@ struct task_struct {
  	void				*security;
  #endif
  
