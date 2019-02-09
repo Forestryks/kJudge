@@ -57,7 +57,7 @@ void parent(pid_t pid) {
 
     ASSERT(wait(&status) == pid);
 
-    ASSERT(W_WASMEMLIMIT(status));
+    ASSERT(W_WAS_MEMLIMIT(status));
     W_CLEARBITS(status);
     ASSERT(WIFEXITED(status) && WEXITSTATUS(status) == 0);
 
