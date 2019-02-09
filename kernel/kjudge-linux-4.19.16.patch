@@ -114,12 +114,12 @@ diff -ruNp linux-4.19.16/include/linux/sched/signal.h linux-4.19.16-kjudge/inclu
  	/*
 diff -ruNp linux-4.19.16/include/linux/sched.h linux-4.19.16-kjudge/include/linux/sched.h
 --- linux-4.19.16/include/linux/sched.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/linux/sched.h	2019-02-09 14:15:24.657349634 +0300
++++ linux-4.19.16-kjudge/include/linux/sched.h	2019-02-09 14:33:26.504937540 +0300
 @@ -55,6 +55,37 @@ struct signal_struct;
  struct task_delay_info;
  struct task_group;
  
-+/* kJudge flags
++/* kJudge flags */
 +
 +#define KJ_WAS_MEMLIMIT					0x0001
 +#define KJ_WAS_MEMLIMIT_STACK			0x0002
