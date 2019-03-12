@@ -32,7 +32,7 @@ def handler(source, path):
     if name not in database["syscalls"]:
         database["syscalls"][name] = {
             "generic": {
-                "action": "unspecified"
+                "action": "none"
             },
             "entries": []
         }
