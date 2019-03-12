@@ -1,15 +1,11 @@
 #!/usr/bin/python3
-import re
 import os
-import sys
 import json
 import hashlib
-import datetime
-from collections import OrderedDict
-from color_utils import Colors
-from parse_utils import find_block
+from utils import Colors, find_block, ask_yes_no
 from process_syscalls import process_syscalls
 from sys import argv
+from actions import actions
 
 
 database = {}
@@ -26,41 +22,102 @@ def handler(source, path):
     code_hash = hashlib.md5(source[code_begin:code_end + 1].encode()).hexdigest()
 
     if "arch" in path and "x86" not in path:
-        print(Colors.italic("Skipping syscall {0}:{1}".format(path, name)), file=sys.stderr)
+        print(Colors.italic("Skipping syscall {0}:{1}".format(path, name)))
         return source
 
     if name not in database["syscalls"]:
-        database["syscalls"][name] = {
-            "generic": {
-                "action": "none"
-            },
-            "entries": []
-        }
+        print(Colors.fail("Syscall {0} not occur in database".format(name)))
+        exit(-1)
 
-    database["syscalls"][name]["entries"].append({
-        "path": path,
-        "signature": signature,
-        "code_hash": code_hash
-    })
-    return source
+    item = None
+    value = -1
+    multiple = False
+    for entry in database["syscalls"][name]["entries"]:
+        current = -1
+        if entry["path"] == path:
+            current = 1
+            if entry["signature"] == signature:
+                current = 2
+                if entry["code_hash"] == code_hash:
+                    current = 3
+
+            if current == value:
+                multiple = True
+            elif current > value:
+                value = current
+                multiple = False
+                item = entry
+
+    if multiple:
+        print(Colors.fail("Multiple occurrences of {0}:{1} in database".format(path, name)))
+        exit(-1)
+
+    if item is None:
+        print(Colors.fail("Syscall {0}:{1} not occur in database".format(path, name)))
+        exit(-1)
+
+    # TODO: check for signature and hash mismatch
+
+    if "action" in item:
+        return actions[item["action"]](source, path)
+    else:
+        return actions[database["syscalls"][name]["generic"]["action"]](source, path)
+
+    # if name not in database["syscalls"]:
+    #     database["syscalls"][name] = {
+    #         "generic": {
+    #             "action": "none"
+    #         },
+    #         "entries": []
+    #     }
+    #
+    # database["syscalls"][name]["entries"].append({
+    #     "path": path,
+    #     "signature": signature,
+    #     "code_hash": code_hash
+    # })
+    # return source
+
+
+def apply_patch(dir_prefix):
+    for subdir, dirs, files in os.walk(dir_prefix):
+        for file in files:
+            path = os.path.join(subdir, file)
+            ext = ".kjudge"
+            if not path.endswith(ext):
+                continue
+            os.rename(path, path[:-len(ext)])
 
 
 def main():
     global database
-    if len(argv) != 2:
-        print("Usage: python3 find_syscalls.py [kernel_dir]")
+    if len(argv) != 3:
+        print("Usage: python3 apply_patch.py [patch] [kernel_dir]")
         exit(-1)
-    kernel_dir = argv[1]
-    database = {
-        "kernel_version": os.path.basename(kernel_dir),
-        "creation_time": str(datetime.datetime.now()),
-        "syscalls": OrderedDict()
-    }
-    process_syscalls(handler, kernel_dir)
+    patch_file = argv[1]
+    kernel_dir = argv[2]
 
-    json_output = json.dumps(database, indent=4)
-    print(json_output)
-    print(Colors.good("Successfully parsed {0} syscalls".format(str(len(database["syscalls"])))), file=sys.stderr)
+    kernel_name = os.path.basename(os.path.abspath(kernel_dir))
+
+    file = open(patch_file)
+    database = json.load(file)
+    file.close()
+
+    print("Applying kJudge syscalls patch created at {0} for kernel version {1}".format(
+        Colors.italic(database["creation_time"]),
+        Colors.italic(database["kernel_version"]))
+    )
+
+    if kernel_name != database["kernel_version"]:
+        if not ask_yes_no("Your kernel version ({0}) differ from patch kernel version ({1}). Continue?".format(
+            kernel_name,
+            database["kernel_version"]
+        ), "no"):
+            exit(-1)
+
+    process_syscalls(handler, kernel_dir)
+    if ask_yes_no("Syscalls patched successfully! Apply patch to kernel source?"):
+        apply_patch(kernel_dir)
 
 
 if __name__ == "__main__":

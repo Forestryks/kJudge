@@ -1,13 +1,11 @@
 #!/usr/bin/python3
-import re
 import os
 import sys
 import json
 import hashlib
 import datetime
 from collections import OrderedDict
-from color_utils import Colors
-from parse_utils import find_block
+from utils import Colors, find_block
 from process_syscalls import process_syscalls
 from sys import argv
 
@@ -51,8 +49,10 @@ def main():
         print("Usage: python3 find_syscalls.py [kernel_dir]")
         exit(-1)
     kernel_dir = argv[1]
+    kernel_name = os.path.basename(os.path.abspath(kernel_dir))
+
     database = {
-        "kernel_version": os.path.basename(kernel_dir),
+        "kernel_version": kernel_name,
         "creation_time": str(datetime.datetime.now()),
         "syscalls": OrderedDict()
     }

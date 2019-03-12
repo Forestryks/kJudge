@@ -1,8 +1,7 @@
 import os
 import re
 import sys
-from color_utils import Colors
-from parse_utils import find_block
+from utils import Colors, find_block
 
 
 # goes through files in current directory
@@ -12,6 +11,8 @@ def process_syscalls(handler, dir_prefix="."):
         for file in files:
             path = os.path.join(subdir, file)
             relpath = os.path.join(reldir, file)
+            if path.endswith(".kjudge"):
+                continue
             with open(path) as input_file:
                 try:
                     text = input_file.read()
@@ -28,6 +29,8 @@ def process_syscalls(handler, dir_prefix="."):
                 continue
 
             entries = [(entry, find_block(text, entry, "{}")[1] + 1) for entry in entries]
+            entries = [entry for entry in entries
+                       if len(re.findall(pattern, text[entry[0]:entry[1]], re.MULTILINE)) == 1]
 
             splitted = []
             for i in range(len(entries)):
@@ -38,14 +41,6 @@ def process_syscalls(handler, dir_prefix="."):
                 splitted.append(handler(text[entries[i][0]:entries[i][1]], relpath))
                 if i + 1 == len(entries):
                     splitted.append(text[entries[i][1]:])
-
-            # if 'fork' in relpath:
-            #     for i in splitted:
-            #         print(i)
-            #         print("==================================================================")
-            #     # print(splitted)
-            #     exit(0)
-            # continue # sadsdasd
 
             result = "".join(splitted)
             with open(path + ".kjudge", "w") as output_file:
