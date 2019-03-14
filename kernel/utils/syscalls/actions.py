@@ -62,7 +62,7 @@ def unknown(source, path):
 
 def testing(source, path):
     lines = """if (KJ_IN_SAFEMODE()) {{
-    if (!kj_user_secure_path(path)) {{
+    if (kj_user_secure_path(path)) {{
         printk(KERN_DEBUG "Process [%d] acquired syscall {name} with restricted path\\n", current->pid);
         return -EPERM;
     }}
