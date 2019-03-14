@@ -4,7 +4,7 @@
     "syscalls": {
         "truncate": {
             "generic": {
-                "action": "unspecified"
+                "action": "testing"
             },
             "entries": [
                 {
@@ -98,7 +98,7 @@
         },
         "chdir": {
             "generic": {
-                "action": "unspecified"
+                "action": "forbid"
             },
             "entries": [
                 {

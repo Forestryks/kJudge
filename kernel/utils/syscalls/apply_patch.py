@@ -56,27 +56,15 @@ def handler(source, path):
         print(Colors.fail("Syscall {0}:{1} not occur in database".format(path, name)))
         exit(-1)
 
-    # TODO: check for signature and hash mismatch
+    if signature != item["signature"]:
+        print(Colors.warn("Signature mismatch for {0}:{1}".format(path, name)))
+    if code_hash != item["code_hash"]:
+        print(Colors.warn("Hash mismatch for {0}:{1}".format(path, name)))
 
     if "action" in item:
         return actions[item["action"]](source, path)
     else:
         return actions[database["syscalls"][name]["generic"]["action"]](source, path)
-
-    # if name not in database["syscalls"]:
-    #     database["syscalls"][name] = {
-    #         "generic": {
-    #             "action": "none"
-    #         },
-    #         "entries": []
-    #     }
-    #
-    # database["syscalls"][name]["entries"].append({
-    #     "path": path,
-    #     "signature": signature,
-    #     "code_hash": code_hash
-    # })
-    # return source
 
 
 def apply_patch(dir_prefix):

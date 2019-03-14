@@ -1,5 +1,6 @@
 import sys
 
+
 def find_block(text, pos, parentheses):
     opened = False
     balance = 0
