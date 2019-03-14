@@ -31,7 +31,7 @@ def generic_forbid(source, path):
     lines = """if (KJ_IN_SAFEMODE()) {{
     current->kj_flags |= KJ_WAS_SV;
     current->kj_violation_id = {id};
-    printk(KERN_ALERT "Process [%d] acquired restricted syscall {name}", current->pid);
+    printk(KERN_DEBUG "Process [%d] acquired restricted syscall {name}\n", current->pid);
     return -EPERM;
 }}"""
     return insert_begin(source, lines)
@@ -63,10 +63,10 @@ def unknown(source, path):
 def testing(source, path):
     lines = """if (KJ_IN_SAFEMODE()) {{
     if (!kj_user_secure_path(path)) {{
-        printk(KERN_ALERT "Process [%d] acquired syscall {name} with restricted path", current->pid);
+        printk(KERN_DEBUG "Process [%d] acquired syscall {name} with restricted path\n", current->pid);
         return -EPERM;
     }}
-    printk(KERN_ALERT "Process [%d] acquired syscall {name} with allowed path", current->pid);
+    printk(KERN_DEBUG "Process [%d] acquired syscall {name} with allowed path\n", current->pid);
 }}"""
     return insert_begin(source, lines)
 
