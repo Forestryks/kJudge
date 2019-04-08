@@ -1,6 +1,3 @@
- - Преписать уже блин фреймворк для тестов
- - Сделать что-нибудь с ТЛ (возможно вообще убрать)
-
  - Rewrite testing framefork
  - Do something with tile limit detection (possible remove due to obsolescence of this method)
 
@@ -19,6 +16,7 @@
  - Syscalls (?)
  - Inability to enter safemode without kjudge-control module
  - Some tests on kjudge-control module
+ - Syscalls tests (fork, forbid, forbid_path, ...)
 
 ## Memory limit tests
  - Memory limit on brk()

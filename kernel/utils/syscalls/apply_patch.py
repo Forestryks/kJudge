@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+import re
 import json
 import hashlib
 from utils import Colors, find_block, ask_yes_no
@@ -22,7 +23,7 @@ def handler(source, path):
     code_hash = hashlib.md5(source[code_begin:code_end + 1].encode()).hexdigest()
 
     if "arch" in path and "x86" not in path:
-        print(Colors.italic("Skipping syscall {0}:{1}".format(path, name)))
+        # print(Colors.italic("Skipping syscall {0}:{1}".format(path, name)))
         return source
 
     if name not in database["syscalls"]:
@@ -62,9 +63,23 @@ def handler(source, path):
         print(Colors.warn("Hash mismatch for {0}:{1}".format(path, name)))
 
     if "action" in item:
-        return actions[item["action"]](source, path)
+        action = item["action"]
     else:
-        return actions[database["syscalls"][name]["generic"]["action"]](source, path)
+        action = database["syscalls"][name]["generic"]["action"]
+    match = re.match("^(^[a-zA-Z_][a-zA-Z0-9_]*)(\\(([^,]+(,[^,]+)*)?\\))*$", action)
+    if match is None:
+        print(Colors.fail("Incorrect action for {0}:{1}".format(path, name)))
+        exit(-1)
+    action_name, action_args = match.group(1), match.group(3)
+    if action_name is None:
+        print(Colors.fail("Incorrect action for {0}:{1}".format(path, name)))
+        exit(-1)
+    if action_args is None:
+        action_args = ""
+    action_args = [item.strip() for item in action_args.split(",")]
+    if len(action_args) == 1 and action_args[0] == "":
+        action_args = []
+    return actions[action_name](source, path, *action_args)
 
 
 def apply_patch(dir_prefix):
@@ -91,7 +106,7 @@ def main():
     database = json.load(file)
     file.close()
 
-    print("Applying kJudge syscalls patch created at {0} for kernel version {1}".format(
+    print("Applying kJudge syscalls patch for kernel version {1}".format(
         Colors.italic(database["creation_time"]),
         Colors.italic(database["kernel_version"]))
     )

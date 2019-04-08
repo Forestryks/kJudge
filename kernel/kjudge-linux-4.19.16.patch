@@ -13,9 +13,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+diff -ruNp linux-4.19.16/arch/x86/ia32/sys_ia32.c linux-4.19.16-kjudge/arch/x86/ia32/sys_ia32.c
+--- linux-4.19.16/arch/x86/ia32/sys_ia32.c	2019-01-17 00:04:38.000000000 +0300
++++ linux-4.19.16-kjudge/arch/x86/ia32/sys_ia32.c	2019-04-08 20:14:56.162847294 +0300
+@@ -48,6 +48,7 @@
+ #include <linux/atomic.h>
+ #include <asm/vgtod.h>
+ #include <asm/ia32.h>
++#include <linux/namei.h>
+ 
+ #define AA(__x)		((unsigned long)(__x))
+ 
 diff -ruNp linux-4.19.16/fs/exec.c linux-4.19.16-kjudge/fs/exec.c
 --- linux-4.19.16/fs/exec.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/fs/exec.c	2019-03-27 22:30:17.981397966 +0300
++++ linux-4.19.16-kjudge/fs/exec.c	2019-04-08 20:14:56.226846810 +0300
 @@ -1039,6 +1039,7 @@ static int exec_mmap(struct mm_struct *m
  		up_read(&old_mm->mmap_sem);
  		BUG_ON(active_mm != old_mm);
@@ -63,7 +74,7 @@ diff -ruNp linux-4.19.16/fs/exec.c linux-4.19.16-kjudge/fs/exec.c
  	return retval;
 diff -ruNp linux-4.19.16/fs/namei.c linux-4.19.16-kjudge/fs/namei.c
 --- linux-4.19.16/fs/namei.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/fs/namei.c	2019-03-27 23:48:28.930775341 +0300
++++ linux-4.19.16-kjudge/fs/namei.c	2019-04-08 20:16:26.822226102 +0300
 @@ -4860,3 +4860,64 @@ const struct inode_operations page_symli
  	.get_link	= page_get_link,
  };
@@ -131,7 +142,7 @@ diff -ruNp linux-4.19.16/fs/namei.c linux-4.19.16-kjudge/fs/namei.c
 +}
 diff -ruNp linux-4.19.16/fs/proc/base.c linux-4.19.16-kjudge/fs/proc/base.c
 --- linux-4.19.16/fs/proc/base.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/fs/proc/base.c	2019-03-26 18:14:17.134605213 +0300
++++ linux-4.19.16-kjudge/fs/proc/base.c	2019-04-08 20:14:56.382845629 +0300
 @@ -562,6 +562,7 @@ static const struct limit_names lnames[R
  	[RLIMIT_NICE] = {"Max nice priority", NULL},
  	[RLIMIT_RTPRIO] = {"Max realtime priority", NULL},
@@ -142,7 +153,7 @@ diff -ruNp linux-4.19.16/fs/proc/base.c linux-4.19.16-kjudge/fs/proc/base.c
  /* Display limits for a process */
 diff -ruNp linux-4.19.16/include/asm-generic/resource.h linux-4.19.16-kjudge/include/asm-generic/resource.h
 --- linux-4.19.16/include/asm-generic/resource.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/asm-generic/resource.h	2019-03-26 18:14:17.134605213 +0300
++++ linux-4.19.16-kjudge/include/asm-generic/resource.h	2019-04-08 20:14:56.618843842 +0300
 @@ -26,6 +26,7 @@
  	[RLIMIT_NICE]		= { 0, 0 },				\
  	[RLIMIT_RTPRIO]		= { 0, 0 },				\
@@ -153,7 +164,7 @@ diff -ruNp linux-4.19.16/include/asm-generic/resource.h linux-4.19.16-kjudge/inc
  #endif
 diff -ruNp linux-4.19.16/include/linux/kernel.h linux-4.19.16-kjudge/include/linux/kernel.h
 --- linux-4.19.16/include/linux/kernel.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/linux/kernel.h	2019-03-27 09:24:16.226198206 +0300
++++ linux-4.19.16-kjudge/include/linux/kernel.h	2019-04-08 20:14:57.150839820 +0300
 @@ -1032,4 +1032,9 @@ static inline void ftrace_dump(enum ftra
  	 /* OTHER_WRITABLE?  Generally considered a bad idea. */		\
  	 BUILD_BUG_ON_ZERO((perms) & 2) +					\
@@ -166,7 +177,7 @@ diff -ruNp linux-4.19.16/include/linux/kernel.h linux-4.19.16-kjudge/include/lin
  #endif
 diff -ruNp linux-4.19.16/include/linux/mm.h linux-4.19.16-kjudge/include/linux/mm.h
 --- linux-4.19.16/include/linux/mm.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/linux/mm.h	2019-03-26 18:14:17.134605213 +0300
++++ linux-4.19.16-kjudge/include/linux/mm.h	2019-04-08 20:14:57.242839125 +0300
 @@ -1664,6 +1664,11 @@ static inline void reset_mm_hiwater_rss(
  	mm->hiwater_rss = get_mm_rss(mm);
  }
@@ -197,7 +208,7 @@ diff -ruNp linux-4.19.16/include/linux/mm.h linux-4.19.16-kjudge/include/linux/m
  #else
 diff -ruNp linux-4.19.16/include/linux/namei.h linux-4.19.16-kjudge/include/linux/namei.h
 --- linux-4.19.16/include/linux/namei.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/linux/namei.h	2019-03-27 21:28:23.969930299 +0300
++++ linux-4.19.16-kjudge/include/linux/namei.h	2019-04-08 20:14:57.298838702 +0300
 @@ -115,4 +115,9 @@ retry_estale(const long error, const uns
  	return error == -ESTALE && !(flags & LOOKUP_REVAL);
  }
@@ -210,7 +221,7 @@ diff -ruNp linux-4.19.16/include/linux/namei.h linux-4.19.16-kjudge/include/linu
  #endif /* _LINUX_NAMEI_H */
 diff -ruNp linux-4.19.16/include/linux/posix-timers.h linux-4.19.16-kjudge/include/linux/posix-timers.h
 --- linux-4.19.16/include/linux/posix-timers.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/linux/posix-timers.h	2019-03-26 18:14:17.134605213 +0300
++++ linux-4.19.16-kjudge/include/linux/posix-timers.h	2019-04-08 20:14:57.310838612 +0300
 @@ -125,6 +125,7 @@ void set_process_cpu_timer(struct task_s
  			   u64 *newval, u64 *oldval);
  
@@ -221,7 +232,7 @@ diff -ruNp linux-4.19.16/include/linux/posix-timers.h linux-4.19.16-kjudge/inclu
  #endif
 diff -ruNp linux-4.19.16/include/linux/sched/signal.h linux-4.19.16-kjudge/include/linux/sched/signal.h
 --- linux-4.19.16/include/linux/sched/signal.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/linux/sched/signal.h	2019-03-26 18:14:17.134605213 +0300
++++ linux-4.19.16-kjudge/include/linux/sched/signal.h	2019-04-08 20:14:57.338838400 +0300
 @@ -186,6 +186,7 @@ struct signal_struct {
  	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
  	unsigned long inblock, oublock, cinblock, coublock;
@@ -232,7 +243,7 @@ diff -ruNp linux-4.19.16/include/linux/sched/signal.h linux-4.19.16-kjudge/inclu
  	/*
 diff -ruNp linux-4.19.16/include/linux/sched.h linux-4.19.16-kjudge/include/linux/sched.h
 --- linux-4.19.16/include/linux/sched.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/linux/sched.h	2019-03-27 22:37:29.503368026 +0300
++++ linux-4.19.16-kjudge/include/linux/sched.h	2019-04-08 20:14:57.370838158 +0300
 @@ -55,6 +55,37 @@ struct signal_struct;
  struct task_delay_info;
  struct task_group;
@@ -283,7 +294,7 @@ diff -ruNp linux-4.19.16/include/linux/sched.h linux-4.19.16-kjudge/include/linu
  	 * they are included in the randomized portion of task_struct.
 diff -ruNp linux-4.19.16/include/uapi/asm-generic/resource.h linux-4.19.16-kjudge/include/uapi/asm-generic/resource.h
 --- linux-4.19.16/include/uapi/asm-generic/resource.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/uapi/asm-generic/resource.h	2019-03-26 18:14:17.134605213 +0300
++++ linux-4.19.16-kjudge/include/uapi/asm-generic/resource.h	2019-04-08 20:14:57.370838158 +0300
 @@ -46,7 +46,8 @@
  					   0-39 for nice level 19 .. -20 */
  #define RLIMIT_RTPRIO		14	/* maximum realtime priority */
@@ -296,7 +307,7 @@ diff -ruNp linux-4.19.16/include/uapi/asm-generic/resource.h linux-4.19.16-kjudg
   * SuS says limits have to be unsigned.
 diff -ruNp linux-4.19.16/include/uapi/linux/prctl.h linux-4.19.16-kjudge/include/uapi/linux/prctl.h
 --- linux-4.19.16/include/uapi/linux/prctl.h	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/include/uapi/linux/prctl.h	2019-03-26 18:14:17.134605213 +0300
++++ linux-4.19.16-kjudge/include/uapi/linux/prctl.h	2019-04-08 20:14:57.498837192 +0300
 @@ -220,4 +220,11 @@ struct prctl_mm_map {
  # define PR_SPEC_DISABLE		(1UL << 2)
  # define PR_SPEC_FORCE_DISABLE		(1UL << 3)
@@ -311,7 +322,7 @@ diff -ruNp linux-4.19.16/include/uapi/linux/prctl.h linux-4.19.16-kjudge/include
  #endif /* _LINUX_PRCTL_H */
 diff -ruNp linux-4.19.16/kernel/exit.c linux-4.19.16-kjudge/kernel/exit.c
 --- linux-4.19.16/kernel/exit.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/kernel/exit.c	2019-03-26 18:14:17.138605229 +0300
++++ linux-4.19.16-kjudge/kernel/exit.c	2019-04-08 20:14:57.538836890 +0300
 @@ -840,8 +840,10 @@ void __noreturn do_exit(long code)
  		hrtimer_cancel(&tsk->signal->real_timer);
  		exit_itimers(tsk->signal);
@@ -392,7 +403,7 @@ diff -ruNp linux-4.19.16/kernel/exit.c linux-4.19.16-kjudge/kernel/exit.c
  	if (infop) {
 diff -ruNp linux-4.19.16/kernel/fork.c linux-4.19.16-kjudge/kernel/fork.c
 --- linux-4.19.16/kernel/fork.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/kernel/fork.c	2019-03-26 18:14:17.138605229 +0300
++++ linux-4.19.16-kjudge/kernel/fork.c	2019-04-08 20:14:57.606836376 +0300
 @@ -1453,11 +1453,17 @@ static void posix_cpu_timers_init_group(
  	unsigned long cpu_limit;
  
@@ -414,7 +425,7 @@ diff -ruNp linux-4.19.16/kernel/fork.c linux-4.19.16-kjudge/kernel/fork.c
  	INIT_LIST_HEAD(&sig->cpu_timers[1]);
 diff -ruNp linux-4.19.16/kernel/sys.c linux-4.19.16-kjudge/kernel/sys.c
 --- linux-4.19.16/kernel/sys.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/kernel/sys.c	2019-03-27 23:14:28.655078042 +0300
++++ linux-4.19.16-kjudge/kernel/sys.c	2019-04-08 20:14:57.618836285 +0300
 @@ -1534,6 +1534,14 @@ int do_prlimit(struct task_struct *tsk,
  		if (resource == RLIMIT_NOFILE &&
  				new_rlim->rlim_max > sysctl_nr_open)
@@ -532,7 +543,7 @@ diff -ruNp linux-4.19.16/kernel/sys.c linux-4.19.16-kjudge/kernel/sys.c
  		break;
 diff -ruNp linux-4.19.16/kernel/time/posix-cpu-timers.c linux-4.19.16-kjudge/kernel/time/posix-cpu-timers.c
 --- linux-4.19.16/kernel/time/posix-cpu-timers.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/kernel/time/posix-cpu-timers.c	2019-03-26 18:14:17.142605247 +0300
++++ linux-4.19.16-kjudge/kernel/time/posix-cpu-timers.c	2019-04-08 20:14:57.654836014 +0300
 @@ -35,6 +35,15 @@ void update_rlimit_cpu(struct task_struc
  	spin_unlock_irq(&task->sighand->siglock);
  }
@@ -621,7 +632,7 @@ diff -ruNp linux-4.19.16/kernel/time/posix-cpu-timers.c linux-4.19.16-kjudge/ker
  	sig->cputime_expires.virt_exp = virt_expires;
 diff -ruNp linux-4.19.16/Makefile linux-4.19.16-kjudge/Makefile
 --- linux-4.19.16/Makefile	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/Makefile	2019-03-26 18:14:17.142605247 +0300
++++ linux-4.19.16-kjudge/Makefile	2019-04-08 20:14:57.794834956 +0300
 @@ -2,7 +2,7 @@
  VERSION = 4
  PATCHLEVEL = 19
@@ -633,7 +644,7 @@ diff -ruNp linux-4.19.16/Makefile linux-4.19.16-kjudge/Makefile
  # *DOCUMENTATION*
 diff -ruNp linux-4.19.16/mm/madvise.c linux-4.19.16-kjudge/mm/madvise.c
 --- linux-4.19.16/mm/madvise.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/mm/madvise.c	2019-03-26 18:14:17.142605247 +0300
++++ linux-4.19.16-kjudge/mm/madvise.c	2019-04-08 20:14:57.794834956 +0300
 @@ -476,6 +476,7 @@ static int madvise_free_single_vma(struc
  	lru_add_drain();
  	tlb_gather_mmu(&tlb, mm, start, end);
@@ -644,7 +655,7 @@ diff -ruNp linux-4.19.16/mm/madvise.c linux-4.19.16-kjudge/mm/madvise.c
  	madvise_free_page_range(&tlb, vma, start, end);
 diff -ruNp linux-4.19.16/mm/memory.c linux-4.19.16-kjudge/mm/memory.c
 --- linux-4.19.16/mm/memory.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/mm/memory.c	2019-03-26 18:14:17.142605247 +0300
++++ linux-4.19.16-kjudge/mm/memory.c	2019-04-08 20:14:57.982833537 +0300
 @@ -1605,6 +1605,7 @@ void zap_page_range(struct vm_area_struc
  	lru_add_drain();
  	tlb_gather_mmu(&tlb, mm, start, end);
@@ -663,7 +674,7 @@ diff -ruNp linux-4.19.16/mm/memory.c linux-4.19.16-kjudge/mm/memory.c
  	mmu_notifier_invalidate_range_end(mm, address, end);
 diff -ruNp linux-4.19.16/mm/mmap.c linux-4.19.16-kjudge/mm/mmap.c
 --- linux-4.19.16/mm/mmap.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/mm/mmap.c	2019-03-26 18:14:17.142605247 +0300
++++ linux-4.19.16-kjudge/mm/mmap.c	2019-04-08 20:14:57.982833537 +0300
 @@ -196,6 +196,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
  	struct vm_area_struct *next;
  	unsigned long min_brk;
@@ -812,7 +823,7 @@ diff -ruNp linux-4.19.16/mm/mmap.c linux-4.19.16-kjudge/mm/mmap.c
  
 diff -ruNp linux-4.19.16/mm/mremap.c linux-4.19.16-kjudge/mm/mremap.c
 --- linux-4.19.16/mm/mremap.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/mm/mremap.c	2019-03-26 18:14:17.142605247 +0300
++++ linux-4.19.16-kjudge/mm/mremap.c	2019-04-08 20:14:57.982833537 +0300
 @@ -633,5 +633,11 @@ out:
  	userfaultfd_unmap_complete(mm, &uf_unmap_early);
  	mremap_userfaultfd_complete(&uf, addr, new_addr, old_len);
@@ -827,7 +838,7 @@ diff -ruNp linux-4.19.16/mm/mremap.c linux-4.19.16-kjudge/mm/mremap.c
  }
 diff -ruNp linux-4.19.16/mm/rmap.c linux-4.19.16-kjudge/mm/rmap.c
 --- linux-4.19.16/mm/rmap.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/mm/rmap.c	2019-03-26 18:14:17.142605247 +0300
++++ linux-4.19.16-kjudge/mm/rmap.c	2019-04-08 20:14:57.982833537 +0300
 @@ -1504,6 +1504,7 @@ static bool try_to_unmap_one(struct page
  
  		/* Update high watermark before we lower rss */
@@ -838,7 +849,7 @@ diff -ruNp linux-4.19.16/mm/rmap.c linux-4.19.16-kjudge/mm/rmap.c
  			pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
 diff -ruNp linux-4.19.16/security/kjudge/kjudge.c linux-4.19.16-kjudge/security/kjudge/kjudge.c
 --- linux-4.19.16/security/kjudge/kjudge.c	1970-01-01 03:00:00.000000000 +0300
-+++ linux-4.19.16-kjudge/security/kjudge/kjudge.c	2019-03-27 22:37:37.231397534 +0300
++++ linux-4.19.16-kjudge/security/kjudge/kjudge.c	2019-04-08 20:14:57.990833476 +0300
 @@ -0,0 +1,9 @@
 +#include <linux/kernel.h>
 +
@@ -851,8 +862,8 @@ diff -ruNp linux-4.19.16/security/kjudge/kjudge.c linux-4.19.16-kjudge/security/
 +EXPORT_SYMBOL(kj_activated);
 diff -ruNp linux-4.19.16/security/kjudge/kjudge-control.c linux-4.19.16-kjudge/security/kjudge/kjudge-control.c
 --- linux-4.19.16/security/kjudge/kjudge-control.c	1970-01-01 03:00:00.000000000 +0300
-+++ linux-4.19.16-kjudge/security/kjudge/kjudge-control.c	2019-03-27 10:35:11.992524532 +0300
-@@ -0,0 +1,25 @@
++++ linux-4.19.16-kjudge/security/kjudge/kjudge-control.c	2019-04-08 20:14:57.990833476 +0300
+@@ -0,0 +1,26 @@
 +#include <linux/module.h>
 +#include <linux/moduleparam.h>
 +#include <linux/namei.h>
@@ -870,6 +881,7 @@ diff -ruNp linux-4.19.16/security/kjudge/kjudge-control.c linux-4.19.16-kjudge/s
 +static void __exit kj_exit(void) {
 +	printk(KERN_INFO "kjudge-control stopped\n");
 +	kj_activated--;
++	kj_file_rules_count = 0;
 +}
 +
 +module_init(kj_init);
@@ -880,13 +892,13 @@ diff -ruNp linux-4.19.16/security/kjudge/kjudge-control.c linux-4.19.16-kjudge/s
 +MODULE_LICENSE("GPL");
 diff -ruNp linux-4.19.16/security/kjudge/Makefile linux-4.19.16-kjudge/security/kjudge/Makefile
 --- linux-4.19.16/security/kjudge/Makefile	1970-01-01 03:00:00.000000000 +0300
-+++ linux-4.19.16-kjudge/security/kjudge/Makefile	2019-03-26 23:21:49.367163657 +0300
++++ linux-4.19.16-kjudge/security/kjudge/Makefile	2019-04-08 20:14:57.990833476 +0300
 @@ -0,0 +1,2 @@
 +obj-m := kjudge-control.o
 +obj-y := kjudge.o
 diff -ruNp linux-4.19.16/security/Makefile linux-4.19.16-kjudge/security/Makefile
 --- linux-4.19.16/security/Makefile	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/security/Makefile	2019-03-26 23:22:09.519236446 +0300
++++ linux-4.19.16-kjudge/security/Makefile	2019-04-08 20:14:57.994833446 +0300
 @@ -30,3 +30,7 @@ obj-$(CONFIG_CGROUP_DEVICE)		+= device_c
  # Object integrity file lists
  subdir-$(CONFIG_INTEGRITY)		+= integrity
@@ -897,7 +909,7 @@ diff -ruNp linux-4.19.16/security/Makefile linux-4.19.16-kjudge/security/Makefil
 +obj-y							+= kjudge/
 diff -ruNp linux-4.19.16/security/selinux/hooks.c linux-4.19.16-kjudge/security/selinux/hooks.c
 --- linux-4.19.16/security/selinux/hooks.c	2019-01-17 00:04:38.000000000 +0300
-+++ linux-4.19.16-kjudge/security/selinux/hooks.c	2019-03-26 18:14:17.146605263 +0300
++++ linux-4.19.16-kjudge/security/selinux/hooks.c	2019-04-08 20:14:58.390830462 +0300
 @@ -2680,8 +2680,12 @@ static void selinux_bprm_committing_cred
  			rlim->rlim_cur = min(rlim->rlim_max, initrlim->rlim_cur);
  		}

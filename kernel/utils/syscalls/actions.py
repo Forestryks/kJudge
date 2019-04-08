@@ -1,7 +1,7 @@
-from utils import Colors, find_block
+from utils import Colors, find_block, render_template
 
 
-def insert_begin(source, lines):
+def insert_begin(source, template, **kwargs):
     code_begin, code_end = find_block(source, 0, "{}")
     args_begin, args_end = find_block(source, 0, "()")
     args = list(map(lambda x: x.strip(), source[args_begin + 1:args_end].split(',')))
@@ -14,10 +14,13 @@ def insert_begin(source, lines):
         else:
             break
 
-    string = ''.join([pref + line.format(
-        id=str(1),
-        name=name
-    ) for line in lines.split("\n")])
+    string = render_template(
+        template,
+        id=1,
+        name=name,
+        **kwargs
+    )
+    string = ''.join([pref + line for line in string.split("\n")])
 
     source = "{0}{1}{2}".format(
         source[:endl],
@@ -28,20 +31,11 @@ def insert_begin(source, lines):
 
 
 def generic_forbid(source, path):
-    lines = """if (KJ_IN_SAFEMODE()) {{
-    current->kj_flags |= KJ_WAS_SV;
-    current->kj_violation_id = {id};
-    printk(KERN_DEBUG "Process [%d] acquired restricted syscall {name}\\n", current->pid);
-    return -EPERM;
-}}"""
-    return insert_begin(source, lines)
+    return insert_begin(source, "templates/forbid.c")
 
 
 def generic_omit(source, path):
-    lines = """if (KJ_IN_SAFEMODE()) {{
-    return -EPERM;
-}}"""
-    return insert_begin(source, lines)
+    return insert_begin(source, "templates/omit.c")
 
 
 def none(source, path):
@@ -56,19 +50,16 @@ def unspecified(source, path):
     return source
 
 
-def unknown(source, path):
-    return source
+def forbid_path(source, path, path_var, mode="soft"):
+    if mode == "strict":
+        return insert_begin(source, "templates/forbid_path.c", path_var=path_var, strict="true")
+    return insert_begin(source, "templates/forbid_path.c", path_var=path_var)
 
 
-def testing(source, path):
-    lines = """if (KJ_IN_SAFEMODE()) {{
-    if (kj_user_secure_path(path)) {{
-        printk(KERN_DEBUG "Process [%d] acquired syscall {name} with restricted path\\n", current->pid);
-        return -EPERM;
-    }}
-    printk(KERN_DEBUG "Process [%d] acquired syscall {name} with allowed path\\n", current->pid);
-}}"""
-    return insert_begin(source, lines)
+def forbid_path_at(source, path, dfd_var, path_var, mode="soft"):
+    if mode == "strict":
+        return insert_begin(source, "templates/forbid_path_at.c", dfd_var=dfd_var, path_var=path_var, strict="true")
+    return insert_begin(source, "templates/forbid_path_at.c", dfd_var=dfd_var, path_var=path_var)
 
 
 actions = {
@@ -76,6 +67,6 @@ actions = {
     "forbid": generic_forbid,
     "omit": generic_omit,
     "unspecified": unspecified,
-    "unknown": unknown,
-    "testing": testing
+    "forbid_path": forbid_path,
+    "forbid_path_at": forbid_path_at
 }

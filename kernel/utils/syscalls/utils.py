@@ -1,4 +1,6 @@
 import sys
+import os
+from jinja2 import Template
 
 
 def find_block(text, pos, parentheses):
@@ -66,3 +68,9 @@ def ask_yes_no(message, default="yes"):
             return valid[answer]
         else:
             pass
+
+
+def render_template(filename, **kwargs):
+    if not os.path.isabs(filename):
+        filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
+    return Template(open(filename).read()).render(**kwargs)
